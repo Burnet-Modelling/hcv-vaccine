@@ -20,7 +20,7 @@ The primary entrypoints are `run_main.py` for running simulations per country an
 - Uses standard scientific Python stack for numerical work and plotting
 - Designed for batch execution (see `job.conf` example for running many countries)
 
-## Quick start — developer setup
+## Quick start
 
 Prerequisites
 
@@ -63,7 +63,7 @@ python run_postprocess.py
 
 The post-processing script expects results to be under the `results/` folder with the structure produced by `run_main.py` (calibration, scenarios, sensitivity_analyses, figures).
 
-## Project structure (high level)
+## Project structure
 
 - `hcv/` — package with model code, databook generation, utilities and plotting helpers
 - `data/` — input spreadsheets and shapefiles used to build databooks and for mapping
@@ -78,17 +78,18 @@ The post-processing script expects results to be under the `results/` folder wit
 
 Declared in `setup.py`. Key packages:
 
-- numpy, pandas, scipy — numerical and data handling
-- sciris — utilities
-- atomica — used for compartmental modelling
-- openpyxl — read/write Excel files
+- numpy, pandas, scipy: numerical and data handling
+- sciris: utilities
+- atomica: used for compartmental modelling
+- openpyxl: read/write Excel files
 
 Install via pip as shown above.
 
 ## Maintainers and contribution
 
 Maintainer: Farah Houdroge
-Contributing: Phillip Luong, Jessica Zuk, Chris Seaman, Kelly Maynard
+
+Contributors: Phillip Luong, Jessica Zuk, Chris Seaman, Kelly Maynard
 
 If you want to contribute:
 
