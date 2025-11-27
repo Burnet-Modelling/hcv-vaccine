@@ -67,6 +67,7 @@ The post-processing script expects results to be under the `results/` folder wit
 
 - `hcv/` — package with model code, databook generation, utilities and plotting helpers
 - `data/` — input spreadsheets and shapefiles used to build databooks and for mapping
+- `framework/` — atomica framework of compartmental model 
 - `databooks/` — generated per-country databooks 
 - `results/` — output folder used by scripts for calibration, scenarios and figures
 - `run_main.py` — per-country pipeline entrypoint
