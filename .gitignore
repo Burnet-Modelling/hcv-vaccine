@@ -20,3 +20,4 @@ data/country_scope_og.xlsx
 run_calib_manual.py
 file_transfer.ps1
 .idea
+/.github

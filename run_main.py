@@ -9,7 +9,7 @@ Script to:
     - Run YAML auto-calibration
     - Plot calibration
     - Run vaccine scenarios
-    - Post-process & plot results
+    - Run sensitivity analyses
 """
 from hcv.generate_databooks import generate_databook
 from hcv import utils as ut

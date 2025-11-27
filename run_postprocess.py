@@ -3,6 +3,8 @@
 Created on Wed Jul 16 11:37:29 2025
 
 @author: farah.houdroge
+
+Post-process results from calibration, scenarios and sensitivity analyses.
 """
 
 from hcv import utils as ut

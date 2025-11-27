@@ -12,8 +12,9 @@ import math
 from atomica.plotting import Series
 from scipy.stats import pearsonr
 
-#%%
+#%% Root directory
 def get_project_root():
+    
     # Start checking from the current file's directory
     # Note: Use try/except to handle when __file__ is undefined (e.g., REPL)
     try:
@@ -184,6 +185,7 @@ def run_calibration(country, savedir, yaml_folder=None):
 
 
 def calibration_outputs(cal_folder, scens_folder):
+    
     inci_data_ghr = pd.read_excel(
         str(rootdir) + "/data/GHR24_data.xlsx",
         sheet_name="Table2.11 Countries burden",
