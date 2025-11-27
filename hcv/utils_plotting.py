@@ -27,12 +27,20 @@ def panel_plot(
     col_title_text=None,
     row_title_text=None,
 ):
-    """
-    Function to add atomica plots to a panel
-    :param fig: Atomica figure object (i.e. made by at.plot_series())
-    :param place: What position should the plot take in the panel
-    :param new_fig: A matplotlib figure where the plot will be placed (i.e. med by plt.figure())
-    :param dimensions: number of rows and columns of figures in panel plot
+    """Panel plot configuration for a given figure.
+    
+    This function modifies an existing matplotlib figure by transferring an axis to a new figure and adjusting its position and labels. It also allows for the addition of optional column and row titles.
+    
+    Args:
+        fig (matplotlib.figure.Figure): The original figure containing the axis to be modified.
+        place (int): The position of the subplot in the new figure.
+        new_fig (matplotlib.figure.Figure): The new figure to which the axis will be added.
+        dimensions (tuple): The dimensions of the subplot grid (rows, columns).
+        col_title_text (str, optional): The text for the column title. Defaults to None.
+        row_title_text (str, optional): The text for the row title. Defaults to None.
+    
+    Returns:
+        None: This function modifies the figures in place and does not return a value.
     """
     fig.set_size_inches(20, 18)
     ax = fig.axes[0]
@@ -54,12 +62,25 @@ def panel_plot(
 
 
 def plot_outcomes(P, result, file_name, start_year=2000, end_year=2050):
-    """
-    Produces a panel plot for manual calibraiton use
-    :param P: atomica project
-    :param result: atomica result object
-    :param dirname: directory for saving the figure
-    :return: panel plot
+    """Plot outcomes of a population model over a specified range of years.
+    
+    Args:
+        P (Project): The project object containing population data.
+        result (Result): The result object containing simulation outcomes.
+        file_name (str): The title of the plot, which will be displayed as the main title.
+        start_year (int, optional): The starting year for the x-axis. Defaults to 2000.
+        end_year (int, optional): The ending year for the x-axis. Defaults to 2050.
+    
+    Returns:
+        None: The function generates and saves a plot but does not return any value.
+    
+    Raises:
+        None: This function does not raise any exceptions.
+    
+    Notes:
+        - The function creates multiple subplots for different age groups and populations, including general populations, people who inject drugs, and prisoners.
+        - It also plots various health-related metrics such as the number of people living with hepatitis C (PLHCV), deaths due to hepatitis C, treatments, new diagnoses, new infections, and new hepatocellular carcinoma (HCC) cases.
+        - The plots are adjusted for aesthetics and clarity, including setting limits on the y-axis and customizing legends.
     """
     plt.rcParams["font.size"] = 10
     # Adjust plotting settings
@@ -289,270 +310,24 @@ def plot_outcomes(P, result, file_name, start_year=2000, end_year=2050):
     # plt.show()
 
 
-def plot_scenario(P, results, country, start_year=2025, end_year=2050):
-    """
-    Produces a panel plot for manual calibraiton use
-    :param P: atomica project
-    :param result: atomica result object
-    :param dirname: directory for saving the figure
-    :return: panel plot
-    """
-    plt.rcParams["font.size"] = 10
-    # Adjust plotting settings
-    aplt.settings["legend_mode"] = ""
-    aplt.settings["marker_edge_width"] = 1.0
-
-    plot_data = P.data
-
-    new_fig = plt.figure(
-        figsize=(30, 20)
-    )  # Make a new figure and set size (originally 22,15)
-    dimensions = (6, 5)  # Lay out the subplots # (rows, columns)
-    plt.subplots_adjust(hspace=0.4, wspace=0.5)  # Make some space between the plots
-    # plt.suptitle(country, fontsize =40)
-
-    # for result in results:
-    #     res_name = result.name
-    #     res_name = res_name.replace("& ","&\n")
-    #     res_name = res_name + '\n'
-    #     result.name = res_name
-
-    ########## Population sizes
-    warnings.filterwarnings("ignore")
-
-    d = at.PlotData(results, pops="10-17_females", outputs="alive_vax", project=P)
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated adolescent females")
-    plt.xlim([start_year, end_year])
-
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(
-        fig_demo[0],
-        1,
-        new_fig,
-        dimensions,
-        col_title=True,
-        col_title_text=country + "\n",
-    )
-
-    d = at.PlotData(results, pops="10-17_males", outputs="alive_vax", project=P)
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated adolescent males")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 6, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["18-64_females", "65+_females"]},
-        outputs="alive_vax",
-        project=P,
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated adult females")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 11, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["18-64_males", "65+_males"]},
-        outputs="alive_vax",
-        project=P,
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated adult males")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 16, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["PWID_females", "PWID_males"]},
-        outputs="alive_vax",
-        project=P,
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated People who inject drugs")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 21, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["Prisoners_females", "Prisoners_males"]},
-        outputs="alive_vax",
-        project=P,
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Vaccinated People in prison")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 26, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["18-64_females", "65+_females"]},
-        outputs=["prevalence"],
-        project=P,
-        pop_aggregation="weighted",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among female adults")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 2, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops={"total": ["18-64_males", "65+_males"]},
-        outputs=["prevalence"],
-        project=P,
-        pop_aggregation="weighted",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among male adults")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 7, new_fig, dimensions)
-
-    d = at.PlotData(results, pops=["PWID_females"], outputs=["prevalence"], project=P)
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among female PWID")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 12, new_fig, dimensions)
-
-    d = at.PlotData(results, pops=["PWID_males"], outputs=["prevalence"], project=P)
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among male PWID")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 17, new_fig, dimensions)
-
-    d = at.PlotData(
-        results, pops=["Prisoners_females"], outputs=["prevalence"], project=P
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among females in prison")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 22, new_fig, dimensions)
-
-    d = at.PlotData(
-        results, pops=["Prisoners_males"], outputs=["prevalence"], project=P
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("Prevalence among males in prison")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=False)
-    panel_plot(fig_demo[0], 27, new_fig, dimensions)
-
-    aplt.settings["legend_mode"] = "together"
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="total_hcv",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.scatter(
-        plot_data.tdve["plhcv_total"].ts["Total"].t,
-        plot_data.tdve["plhcv_total"].ts["Total"].vals,
-        facecolors="none",
-        edgecolors="C0",
-    )
-    plt.title("Number of PLHCV")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 3, new_fig, dimensions)
-
-    aplt.settings["legend_mode"] = ""
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="deaths_hcv",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.scatter(
-        plot_data.tdve["deaths_hcv_total"].ts["Total"].t,
-        plot_data.tdve["deaths_hcv_total"].ts["Total"].vals,
-        facecolors="none",
-        edgecolors="C0",
-    )
-    plt.title("Number of HCV deaths")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 8, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="tx_m",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.scatter(
-        plot_data.tdve["treat_total"].ts["Total"].t,
-        plot_data.tdve["treat_total"].ts["Total"].vals,
-        facecolors="none",
-        edgecolors="C0",
-    )
-    plt.title("Number of treatments")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 13, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="notifications_m",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.scatter(
-        plot_data.tdve["diag_nb_total"].ts["Total"].t,
-        plot_data.tdve["diag_nb_total"].ts["Total"].vals,
-        facecolors="none",
-        edgecolors="C0",
-    )
-    plt.title("Number of new diagnoses")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 18, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="inci_all_m",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.title("New infections")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 23, new_fig, dimensions)
-
-    d = at.PlotData(
-        results,
-        pops=[{"total": list(P.data.pops)}],
-        outputs="vaccine_uptake:flow",
-        pop_aggregation="sum",
-    )
-    fig_demo = at.plot_series(d, axis="results")
-    plt.autoscale()
-    plt.title("Vaccines administered")
-    plt.xlim([start_year, end_year])
-    plt.autoscale(enable=True, axis="y", tight=True)
-    panel_plot(fig_demo[0], 28, new_fig, dimensions)
-
-
 def plot_calibration(country, cal_folder, savedir, cal_version=None):
+    """Plot calibration results for a specified country.
+    
+    This function generates and saves a calibration plot for a given country using the specified calibration folder and directory for saving the output. It loads the calibration data, runs the simulation, and plots the outcomes.
+    
+    Args:
+        country (str): The name of the country for which the calibration plot is to be generated.
+        cal_folder (str): The folder path where calibration data is stored.
+        savedir (str): The directory path where the generated plot will be saved.
+        cal_version (str, optional): The version of the calibration data to use. If None, the latest version will be used.
+    
+    Returns:
+        None: The function saves the plot as a PNG file and does not return any value.
+    
+    Raises:
+        FileNotFoundError: If the specified calibration folder does not exist.
+        ValueError: If the country is not found in the calibration data.
+    """
     from hcv.parameters import iso_to_country
     print(f"Plotting country {country}")
     P = ut.project(
@@ -566,19 +341,23 @@ def plot_calibration(country, cal_folder, savedir, cal_version=None):
     plt.close("all")
 
 
-def plot_scenarios(P, results, country, savedir):
-    from hcv.parameters import iso_to_country
-
-    print(f"Plotting {country} scenarios")
-    plot_scenario(P, results, country, start_year=2000, end_year=2050)
-    plt.savefig(savedir / f"{iso_to_country[country]}.jpeg")
-    print(f"plot saved: {savedir}/{iso_to_country[country]}.jpeg")
-    plt.close("all")
-
-
 def plot_bars_impact(scens_folder, regions=None):
-    """
-    Panel plot of cases averted
+    """Plot bar charts to visualize the impact of different scenarios on specified regions.
+    
+    This function generates bar plots using seaborn to display the point estimates of various outcomes across different scenarios and regions. It calculates the averted region data from the specified folder and optionally filters the data based on the provided regions. Error bars representing the uncertainty bounds are also included in the plots.
+    
+    Args:
+        scens_folder (str): The path to the folder containing scenario data.
+        regions (list, optional): A list of regions to filter the data. If None, all regions are included.
+    
+    Returns:
+        None: The function displays the plots directly and does not return any value.
+    
+    Raises:
+        ValueError: If the provided folder does not contain valid scenario data.
+    
+    Example:
+        plot_bars_impact("path/to/scenarios", regions=["AFR", "EUR"])
     """
     df_plot = ut.calc_averted_region(scens_folder)
 
@@ -678,6 +457,16 @@ def plot_bars_impact(scens_folder, regions=None):
 
 
 def plot_bcr_map(scens_folder):
+    """Plot a Benefit-Cost Ratio (BCR) map for different scenarios.
+    
+    This function reads a shapefile of world countries and a CSV file containing BCR values for various countries across different scenarios. It classifies the BCR values into categories, assigns colors to these categories, and then plots a map where each country is colored according to its BCR category for each scenario.
+    
+    Args:
+        scens_folder (Path): The folder containing the 'bcr_map.csv' file with BCR values indexed by country.
+    
+    Returns:
+        None: The function displays a plot for each scenario but does not return any values.
+    """
 
     # Load the shapefile (update the path to where you saved it)
     world = gpd.read_file(
@@ -739,6 +528,16 @@ def plot_bcr_map(scens_folder):
 
 
 def plot_calibration_forest(cal_folder):
+    """Plot calibration data for HCV incidence and prevalent cases.
+    
+    This function reads calibration data from an Excel file and generates two plots: one for HCV incidence and another for HCV prevalent cases. The plots display model outputs with confidence intervals and compare them against data from the Global Hepatitis Report 2024 and The Polaris Observatory.
+    
+    Args:
+        cal_folder (Path): The path to the folder containing the 'calibration_validation.xlsx' file.
+    
+    Returns:
+        None: The function displays the plots directly and does not return any values.
+    """
     df_plot = pd.read_excel(
         cal_folder / "calibration_validation.xlsx", sheet_name="Plot data"
     )
@@ -822,6 +621,14 @@ def plot_calibration_forest(cal_folder):
 
 
 def dynamic_unit_formatter(ax):
+    """Formats the y-axis of a given matplotlib axis object to display values in a more readable unit (e.g., billions, millions, thousands).
+    
+    Args:
+        ax (matplotlib.axes.Axes): The matplotlib axis object to format.
+    
+    Returns:
+        FuncFormatter: A formatter function that formats the y-axis labels based on the maximum y-value.
+    """
     y_max = ax.get_ylim()[1]
 
     if y_max >= 1e9:
@@ -848,6 +655,22 @@ def dynamic_unit_formatter(ax):
 
 
 def plot_outcomes_timeseries(scens_folder, regions=["global"], scenarios="all"):
+    """Plot outcomes time series for specified regions and scenarios.
+    
+    This function generates a time series plot of epidemiological outcomes for given regions and scenarios. It retrieves data from specified folders and an Excel file, processes the data, and creates a series of plots showing the central estimates and confidence intervals for each outcome.
+    
+    Args:
+        scens_folder (str): The path to the folder containing scenario data.
+        regions (list, optional): A list of regions to plot. Defaults to ["global"].
+        scenarios (str or list, optional): Scenarios to include in the plot. If "all", all scenarios will be plotted. Defaults to "all".
+    
+    Returns:
+        None: Displays the plot directly.
+    
+    Raises:
+        FileNotFoundError: If the specified Excel file or folder does not exist.
+        KeyError: If the specified regions or scenarios are not found in the data.
+    """
     plot_data = ut.calc_outcomes_region(scens_folder, n_samples=100, regions=regions)
     regions = list(plot_data.keys())
     epi_outcomes = list(plot_data[list(plot_data.keys())[0]])
@@ -941,14 +764,21 @@ def plot_outcomes_timeseries(scens_folder, regions=["global"], scenarios="all"):
 
 
 def plot_calibration_panel(scens_folder, cal_folder, n_samples=100):
-    """
-    Generates a multi-page PDF panel plot for calibration results.
-
+    """Generates a multi-page calibration panel plot for various health outcomes across multiple countries.
+    
+    This function reads scenario data from specified folders, processes the data to extract relevant health outcomes, and creates a PDF file containing plots for each country. Each page of the PDF displays the calibration results for a set number of countries, with each outcome represented in a separate subplot.
+    
     Args:
-        scens_folder (Path): Directory containing scenario results.
-        cal_folder (Path): Directory to save the output panel plot.
-        sc: Module/object with a 'load' method to read data files.
-        n_samples (int): Number of Monte Carlo samples to load.
+        scens_folder (str or Path): The path to the folder containing scenario data files.
+        cal_folder (str or Path): The path to the folder where the calibration panel PDF will be saved.
+        n_samples (int, optional): The number of samples to process for each country. Defaults to 100.
+    
+    Returns:
+        None: The function saves the calibration panel as a PDF file and does not return any value.
+    
+    Raises:
+        FileNotFoundError: If the specified scenario or calibration folders do not exist.
+        ValueError: If the data files do not contain the expected structure or keys.
     """
     from hcv.parameters import iso_to_country
     ## Pre-requisites for plots

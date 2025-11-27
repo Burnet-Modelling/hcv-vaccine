@@ -10,6 +10,24 @@ import hcv.utils as ut
 rootdir = ut.get_project_root()
 
 def generate_databook(country, savedir=None):
+    """Generates a databook for a specified country based on demographic and health data.
+    
+    Args:
+        country (str): The ISO3 code of the country for which the databook is generated.
+        savedir (str, optional): The directory where the databook will be saved. If None, defaults to a predefined path.
+    
+    Returns:
+        None: The function saves the generated databook to the specified directory.
+        
+    Raises:
+        FileNotFoundError: If the required data files are not found in the specified root directory.
+        ValueError: If the country code is not found in the data.
+        
+    Notes:
+        The function processes various demographic and health-related datasets, populating a project data structure
+        with time series data for different population groups and health indicators. It also handles transfers between
+        populations and calculates various health metrics based on the input data.
+    """
     print(country)
     
     F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework.xlsx')

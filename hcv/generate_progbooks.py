@@ -29,14 +29,49 @@ for _, row in df_income.iterrows():
  
 # Calculate an Intervention value from relative risk and Baseline Value  
 def rr_to_value(baseline, relative_risk):
+    """Calculates the value based on a baseline and a relative risk.
+    
+    Args:
+        baseline (float): The baseline value.
+        relative_risk (float): The relative risk multiplier.
+    
+    Returns:
+        float: The calculated value, which is the product of baseline and relative risk.
+    """
     return baseline*relative_risk
 
 # Calculate an Intervention value from Odds Ratio and Baseline Value  
 def or_to_value(baseline, odds_ratio): 
+    """Calculates the value based on a baseline and an odds ratio.
+    
+    This function computes the value using the formula:
+    value = odds_ratio * baseline / ((1 - baseline) + (odds_ratio * baseline))
+    
+    Args:
+        baseline (float): The baseline probability, should be between 0 and 1.
+        odds_ratio (float): The odds ratio, a positive float.
+    
+    Returns:
+        float: The computed value based on the provided baseline and odds ratio.
+    """
     return odds_ratio*baseline/((1-baseline) + (odds_ratio*baseline))
 
 # Calculate an Intervention value from probablity and Baseline Value  
 def prob_to_value(baseline, probability, min_or_max):
+    """Calculate the minimum or maximum value between a baseline and a given probability.
+    
+    Args:
+        baseline (float): The baseline value to compare against.
+        probability (float): The probability value to compare.
+        min_or_max (str): A string indicating whether to return the 'min' or 'max' value.
+    
+    Returns:
+        float: The minimum or maximum value between the baseline and probability, 
+        depending on the value of min_or_max.
+    
+    Raises:
+        ValueError: If min_or_max is not 'min' or 'max'.
+    """
     if min_or_max == 'min':
         val = min(baseline, probability)
     elif min_or_max == 'max':
@@ -45,18 +80,62 @@ def prob_to_value(baseline, probability, min_or_max):
 
 # Convert proportion linked-to-care to proportion lost-to-follow-up using relative risk
 def ltc_rr_to_ltfu(baseline, relative_risk=1): 
+    """Converts a baseline risk to a follow-up risk using relative risk.
+    
+    Args:
+        baseline (float): The baseline risk, a value between 0 and 1.
+        relative_risk (float, optional): The relative risk factor. Defaults to 1.
+    
+    Returns:
+        float: The calculated lifetime follow-up risk, a value between 0 and 1.
+    """
     return max(0, 1 - (1 - baseline) * relative_risk) 
 
 # Convert proportion linked-to-care to proportion lost-to-follow-up using odds ratio
 def ltc_or_to_ltfu(baseline, odds_ratio): 
+    """Converts a baseline probability to a follow-up probability using an odds ratio.
+    
+    Args:
+        baseline (float): The baseline probability (between 0 and 1).
+        odds_ratio (float): The odds ratio to be applied.
+    
+    Returns:
+        float: The lifetime follow-up probability (between 0 and 1) calculated from the baseline and odds ratio.
+    """
     return 1 - or_to_value(1 - baseline, odds_ratio) 
 
 # Convert proportion linked-to-care to proportion lost-to-follow-up using probabilities
 def ltc_prob_to_ltfu(baseline, probability):
+    """Converts a probability value to a loss to follow-up value based on a baseline.
+    
+    Args:
+        baseline (float): The baseline value representing the maximum possible LTFU.
+        probability (float): The probability value to be converted, which should be between 0 and 1.
+    
+    Returns:
+        float: The calculated LTFU value, which is the minimum of the baseline and the complement of the probability.
+    """
      return min(baseline,1-probability)
 
 #%% Generate progbook function
 def generate_progbook(country, cal_folder=None, result=None, savedir=None, cov_scenario=False, cov=None):  
+    """Generates a program book for a specified country based on calibration data and simulation results.
+    
+    Args:
+        country (str): The name of the country for which the program book is generated.
+        cal_folder (str, optional): The folder containing calibration data. Required if `result` is not provided.
+        result (object, optional): The simulation result object. If not provided, calibration data will be loaded from `cal_folder`.
+        savedir (str, optional): The directory where the generated program book will be saved. If not provided, a default path will be used.
+        cov_scenario (bool, optional): Indicates whether to generate the program book for a coverage scenario. Defaults to False.
+        cov (str, optional): The coverage value to be used if `cov_scenario` is True. Must be provided in that case.
+    
+    Raises:
+        AssertionError: If `cal_folder` is None when `result` is not provided.
+        AssertionError: If `cov_scenario` is True but `cov` is None.
+    
+    Returns:
+        None: The function saves the generated program book to the specified directory.
+    """
     
     if result is None:
         assert cal_folder is not None, 'cal_folder should not be empty if a result is not passed as an argument'

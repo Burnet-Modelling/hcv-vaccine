@@ -14,6 +14,20 @@ from scipy.stats import pearsonr
 
 #%% Root directory
 def get_project_root():
+    """Get the root directory of the project.
+    
+    This function attempts to locate the root directory of a Python project by searching for
+    the presence of specific project files ('pyproject.toml' or 'setup.py') in the parent
+    directories of the current file's location. If the current file's location cannot be
+    determined, it defaults to the current working directory.
+    
+    Returns:
+        pathlib.Path: The path to the project root directory.
+    
+    Raises:
+        FileNotFoundError: If neither 'pyproject.toml' nor 'setup.py' is found in any
+        parent directory.
+    """
     
     # Start checking from the current file's directory
     # Note: Use try/except to handle when __file__ is undefined (e.g., REPL)
@@ -43,27 +57,17 @@ def project(
     cal_version: str = None,
     load_programs: bool = False,
 ) -> at.Project:
-    """
-    Return atomica project P.
-
-    Parameters
-    ----------
-    country : str
-        ISO3 of country.
-    load_calibration : bool, optional
-        Load y-factors from YAML calibration. The default is True.
-    cal_folder : str, optional
-        If load_calibration = True, then a calibration folder must be spcified. The default is None.
-    cal_version : str, optional
-        Specify version of calibration (None for YAML calibration outputs, v2 for post-calibration check). The default is None.
-    load_programs : bool, optional
-        Load progbook. The default is False.
-
-    Returns
-    -------
-    Atomica Project
-        P.
-
+    """Atomica project of HCV vaccine for a specified country.
+    
+    Args:
+        country (str): The name of the country for which the project is being created.
+        load_calibration (bool, optional): Flag to indicate whether to load calibration data. Defaults to True.
+        cal_folder (str, optional): The folder path where calibration files are stored. Defaults to None.
+        cal_version (str, optional): The version of the calibration file to load. Defaults to None.
+        load_programs (bool, optional): Flag to indicate whether to load program data. Defaults to False.
+    
+    Returns:
+        at.Project: Atomica Project class containing the country-specific vaccination framework and data.
     """
 
     # Load project framework
@@ -103,8 +107,17 @@ def project(
 
 
 def country_scope(file=None):
-    """
-    Generate a country scope based on databook availability
+    """Retrieve a list of countries from an Excel file.
+    
+    This function reads an Excel file containing country data and returns a list of countries. 
+    If no file is provided, it defaults to reading from a predefined file path.
+    
+    Args:
+        file (str, optional): The path to the Excel file. If None, the function uses 
+                              the default file path "/data/country_scope.xlsx".
+    
+    Returns:
+        list: A list of countries extracted from the specified Excel file.
     """
     if file is None:
         df = pd.read_excel("/data/country_scope.xlsx")
@@ -115,8 +128,19 @@ def country_scope(file=None):
 
 
 def return_fw_db(country):
-    """
-    Simple function to return Framework and Databook associated with project
+    """Returns the framework and databook for a specified country.
+    
+    Args:
+        country (str): The name of the country for which the databook is to be retrieved.
+    
+    Returns:
+        tuple: A tuple containing:
+            - framework (ProjectFramework): The project framework associated with the HCV vaccine.
+            - databook (ProjectData): The databook loaded from the corresponding spreadsheet for the specified country.
+    
+    Raises:
+        IndexError: If no databook file is found for the specified country.
+        FileNotFoundError: If the framework or databook files cannot be found.
     """
     framework = at.ProjectFramework(
         rootdir / "framework" / "hcv_vaccine_framework.xlsx"
@@ -130,6 +154,21 @@ def return_fw_db(country):
 
 
 def run_calibration(country, savedir, yaml_folder=None):
+    """Run the calibration process for a specified country.
+    
+    This function initializes a project for the given country, sets up the necessary YAML configuration files based on the country's characteristics, and performs calibration using the specified parameters. The results are saved to an Excel file in the designated directory.
+    
+    Args:
+        country (str): The country code for which the calibration is to be run.
+        savedir (Path): The directory where the calibration results will be saved.
+        yaml_folder (Path, optional): The folder containing the YAML configuration files. If not provided, defaults to a predefined directory.
+    
+    Raises:
+        ValueError: If the country code is not recognized or supported.
+    
+    Returns:
+        None
+    """
     P = project(country, load_calibration=False)
     cal = P.make_parset()
 
@@ -185,6 +224,22 @@ def run_calibration(country, savedir, yaml_folder=None):
 
 
 def calibration_outputs(cal_folder, scens_folder):
+    """Calibrates and outputs epidemiological data for hepatitis C across various countries.
+    
+    Args:
+        cal_folder (str or Path): The directory where the calibration output Excel file will be saved.
+        scens_folder (str or Path): The directory containing scenario output files for economic evaluation.
+    
+    Returns:
+        None: The function saves the calibration outputs to an Excel file and does not return any value.
+    
+    The function performs the following steps:
+    1. Loads incidence data from specified Excel files.
+    2. Iterates through WHO regions and their corresponding countries.
+    3. For each country, it checks if the country is in the relevant datasets.
+    4. Extracts and calculates various epidemiological metrics, including incidence and prevalence estimates.
+    5. Compiles the results into dataframes and saves them to an Excel file with multiple sheets.
+    """
     
     inci_data_ghr = pd.read_excel(
         str(rootdir) + "/data/GHR24_data.xlsx",
@@ -408,6 +463,21 @@ def calibration_outputs(cal_folder, scens_folder):
 
 # %% Vaccine scenarios
 def define_scenarios(P, progset):
+    """Defines scenarios based on program settings and coverage data.
+    
+    Args:
+        P (object): Atomica project.
+        progset (object): An object containing a set of programs to be analyzed.
+    
+    Returns:
+        tuple: A tuple containing:
+            - list: A list of program instructions for each scenario.
+            - list: A list of unique scenario names.
+    
+    Raises:
+        FileNotFoundError: If the specified Excel file does not exist.
+        ValueError: If there are issues with the data in the Excel file.
+    """
     # Control programs with coverage since we don't care about costs (calculated outside)
     t_vec = list(np.arange(P.settings.sim_start, P.settings.sim_end))
 
@@ -441,13 +511,19 @@ def define_scenarios(P, progset):
 
 
 def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
-    """
-    Run scenarios by changing parameter values (stochastic)
-    :param country: ISO3 of country
-    :param cal_folder: path to calibration files
-    :param rand_seed: random seed for reproducible outcomes
-    :param n_samples: number of samples
-    :param savedir: directory for saving outputs
+    """Run scenario sampling for a given country and save the results.
+    
+    This function initializes a project for the specified country, loads calibration data, and runs simulations based on defined scenarios. It generates outputs for various population groups and aggregates results, saving them to specified directories.
+    
+    Args:
+        country (str): The name of the country for which the scenario sampling is to be run.
+        cal_folder (str): The folder path where calibration files are located.
+        rand_seed (int): The random seed for reproducibility of the sampling process.
+        n_samples (int): The number of samples to generate during the simulation.
+        savedir (str): The directory where the output files will be saved.
+    
+    Returns:
+        None: The function saves output files to the specified directory and does not return any value.
     """
     P = project(
         country, load_calibration=True, cal_folder=cal_folder, load_programs=False
@@ -717,6 +793,21 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
 
 
 def calc_averted_region(results_folder, file_name="epi_agg.pkl", n_samples=100):
+    """Calculates averted health outcomes for different scenarios and regions based on epidemiological data.
+    
+    Args:
+        results_folder (Path): The folder containing the results data.
+        file_name (str, optional): The name of the file containing the results data. Defaults to "epi_agg.pkl".
+        n_samples (int, optional): The number of samples to use for calculating averted outcomes. Defaults to 100.
+    
+    Returns:
+        pd.DataFrame: A DataFrame containing the averted outcomes, including point estimates, lower and upper bounds, 
+        for each region and scenario.
+    
+    Raises:
+        FileNotFoundError: If the specified results file does not exist.
+        ValueError: If the data in the results file is not in the expected format.
+    """
     out = sc.load(results_folder / file_name)
     data_progbook = str(rootdir) + "/data/progbook_inputs.xlsx"
     df_scenarios = pd.read_excel(pd.ExcelFile(data_progbook), sheet_name="scenarios")
@@ -799,6 +890,16 @@ def calc_averted_region(results_folder, file_name="epi_agg.pkl", n_samples=100):
 
 
 def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
+    """Calculates epidemiological and economic outcomes for specified regions based on scenario data.
+    
+    Args:
+        scens_folder (Path): The folder containing scenario data files.
+        n_samples (int, optional): The number of samples to use for calculations. Defaults to 100.
+        regions (list, optional): A list of regions to calculate outcomes for. If None, outcomes for all regions will be calculated. Defaults to None.
+    
+    Returns:
+        dict: A dictionary containing the calculated outcomes for each region, including central estimates and confidence intervals for various epidemiological parameters.
+    """
     out = sc.load(scens_folder / "epi_agg.pkl")
     out_econ = sc.load(scens_folder / "econ_agg.pkl")
     data_progbook = str(rootdir) + "/data/progbook_inputs.xlsx"
@@ -888,8 +989,17 @@ def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
 
 # %% Misc calculations
 def calculate_pop_transfers(res):
-    """
-    Calculates population transfers and returns dictionary for accurate care cascade % calculations
+    """Calculate population transfers based on model parameters.
+    
+    This function processes the model results to compute the transfer flows between different population groups based on specified parameters. It identifies relevant parameters, extracts transfer information, and aggregates the results into a structured dictionary.
+    
+    Args:
+        res: An object containing the model results, which includes population data and parameters.
+    
+    Returns:
+        dict: A dictionary where each key is a population group and the value is another dictionary containing:
+            - 'tvec': A time vector associated with the transfers.
+            - 'transfers': A list of computed transfer values for the population group.
     """
 
     # population transfers (summer over for each pop group)
@@ -976,9 +1086,22 @@ def calculate_pop_transfers(res):
 
 
 def format_number_with_sf_and_suffix(number, sf=3):
-    """
-    Rounds a number to 3 significant figures and formats it with a magnitude suffix.
-    (Core function remains the same)
+    """Formats a number with a specified significant figure and a suffix based on its magnitude.
+    
+    Args:
+        number (float): The number to be formatted.
+        sf (int, optional): The number of significant figures to display. Defaults to 3.
+    
+    Returns:
+        str: The formatted number as a string, including a suffix if applicable.
+    
+    Examples:
+        >>> format_number_with_sf_and_suffix(1234567)
+        '1.23M'
+        >>> format_number_with_sf_and_suffix(0)
+        '0'
+        >>> format_number_with_sf_and_suffix(9876543210, sf=2)
+        '9.88B
     """
     if number == 0:
         return "0"
@@ -999,9 +1122,15 @@ def format_number_with_sf_and_suffix(number, sf=3):
 
 
 def format_structured_string(input_str):
-    """
-    Applies the final corrected number formatting, ensuring the entire number
-    (integer part, commas, and decimal part) is consumed during replacement.
+    """Formats a structured string by converting numeric patterns into a standardized format.
+    
+    This function takes an input string, cleans it by replacing non-breaking spaces, and searches for numeric patterns. It converts these patterns into a float and formats them with significant figures and suffixes. If the conversion fails, it retains the original match.
+    
+    Args:
+        input_str (str): The input string containing numeric patterns to be formatted.
+    
+    Returns:
+        str: The formatted string with numeric patterns converted and cleaned.
     """
 
     # 1. Precise Regex to capture the full number, including decimal part
@@ -1058,6 +1187,23 @@ def format_structured_string(input_str):
 
 
 def bcr_correlation():
+    """Calculates the correlation between various predictors and BCR scenarios for different countries.
+    
+    This function reads data from CSV and Excel files, processes the data to extract relevant information for each country, and computes the Pearson correlation coefficients between GDP, prevalence of HCV RNA among PWID, percentage ever tested, and percentage ever treated against BCR scenarios. The results are saved to an Excel file.
+    
+    Args:
+        None
+    
+    Returns:
+        None
+    
+    Raises:
+        FileNotFoundError: If the specified CSV or Excel files do not exist.
+        KeyError: If expected columns are not found in the dataframes.
+    
+    Example:
+        To use this function, simply call bcr_correlation() after setting the appropriate rootdir variable.
+    """
 
     # Load BCR values (scenarios x countries)
     bcr_country = pd.read_csv(
@@ -1157,9 +1303,22 @@ def bcr_correlation():
 
 # %% Economic functions
 def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
-    """
-    Economic evaluation for HCV vaccine modelling
-    Date: 11-07-2025
+    """Evaluate economic scenarios for a given country based on epidemiological data.
+    
+    Args:
+        country (str): The ISO3 code of the country for which the evaluation is performed.
+        savedir_scens (Path): The directory where scenario data is saved.
+        results_folder (Path): The folder where results will be stored.
+        rand_seed (int): The random seed for reproducibility of results.
+        n_samples (int): The number of samples to generate for the evaluation.
+    
+    Returns:
+        None: The function saves the evaluation results to a specified file.
+        
+    Details:
+        This function loads scenario data from an Excel file, processes various epidemiological outputs, 
+        and computes economic estimates related to healthcare costs, productivity losses, and vaccination 
+        impacts over a specified time frame. The results are saved in a structured format for further analysis.
     Author: @ChrisSeaman-Burnet
     """
 
@@ -1843,8 +2002,24 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
 
 
 def aggregate_ensembles(scens_folder, n_samples):
-    """
-    Aggregates outcomes into WHO regions and Global for further analysis and plotting
+    """Aggregate epidemiological and economic data from multiple country scenarios.
+    
+    This function reads scenario data from specified folders, aggregates epidemiological and economic outputs for different regions and scenarios, and saves the aggregated data into pickle files.
+    
+    Args:
+        scens_folder (str or Path): The path to the folder containing scenario outputs.
+        n_samples (int): The number of samples to aggregate for each output.
+    
+    Returns:
+        None: The function saves the aggregated data to files and does not return any value.
+    
+    Raises:
+        FileNotFoundError: If the specified scenario folder or data files do not exist.
+        ValueError: If the data format is not as expected.
+    
+    Notes:
+        - The function expects specific Excel sheets and structures in the input files.
+        - The aggregation is performed for various epidemiological outputs such as incidence and mortality, as well as economic outputs like costs and treatment statistics.
     """
 
     ref_countries = pd.read_excel(
@@ -2207,6 +2382,17 @@ def aggregate_ensembles(scens_folder, n_samples):
 
 
 def econ_analysis(scens_folder, n_samples):
+    """Perform economic analysis based on provided scenarios and sample data.
+    
+    This function loads economic and epidemiological data from specified folders, processes the data to calculate aggregate outcomes, and saves the results into Excel and CSV files. It generates tables for regional aggregate outcomes and comparative outcomes, including cost-effectiveness metrics such as Benefit-Cost Ratios (BCR) and Incremental Cost-Effectiveness Ratios (ICER).
+    
+    Args:
+        scens_folder (pathlib.Path): The folder path containing scenario data files.
+        n_samples (int): The number of samples to be used in the analysis.
+    
+    Returns:
+        None: The function saves the results to Excel and CSV files in the specified folder.
+    """
 
     # Global and Regional Summary Table
     reg_data = sc.load(scens_folder / "econ_agg.pkl")
@@ -2600,6 +2786,20 @@ def econ_analysis(scens_folder, n_samples):
 
 
 def write_print_table(scens_folder):
+    """Writes and saves outcome data tables to an Excel file.
+    
+    This function reads scenario and outcome data from specified Excel sheets, processes the data for various regions, and writes the results to a new Excel file. The output includes two sheets: one for all outcomes and another for the benefit-cost ratios (BCRs) for the years 2026 to 2050.
+    
+    Args:
+        scens_folder (Path): The folder path where the regional outcome Excel files are located and where the output Excel file will be saved.
+    
+    Returns:
+        None: The function saves the output directly to an Excel file and does not return any value.
+    
+    Raises:
+        FileNotFoundError: If the specified Excel files cannot be found in the given folder.
+        ValueError: If the expected data structure in the Excel sheets does not match the function's requirements.
+    """
     regions = ["global", "top10", "AFR", "AMR", "EMR", "EUR", "SEAR", "WPR"]
     regions_spelled = [
         "Global",
@@ -2674,13 +2874,18 @@ def write_print_table(scens_folder):
 
 # %% Sensitivity analyses
 def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
-    """
-    Run scenarios by changing parameter values (stochastic)
-    :param country: ISO3 of country
-    :param cal_folder: path to calibration files
-    :param rand_seed: random seed for reproducible outcomes
-    :param n_samples: number of samples
-    :param savedir: directory for saving outputs
+    """Run sensitivity analyses for a specified country and save the results.
+    
+    This function performs sensitivity analyses based on calibration and program data for a given country. It loads the necessary calibration and program data, defines various population groups, and computes outputs for different scenarios. The results are then saved to specified folders.
+    
+    Args:
+        country (str): The name of the country for which the sensitivity analyses are to be run.
+        cal_folder (str or Path): The folder path where calibration files are located.
+        sens_folder (str or Path): The folder path where sensitivity analysis results will be saved.
+        results_folder (str or Path): The folder path where program results are stored.
+    
+    Returns:
+        None: The function saves the outputs to the specified directory and does not return any value.
     """
     P = project(
         country, load_calibration=True, cal_folder=cal_folder, load_programs=False
@@ -2951,13 +3156,24 @@ def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
 
 
 def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
-    """
-    Run scenarios by changing parameter values (stochastic)
-    :param country: ISO3 of country
-    :param cal_folder: path to calibration files
-    :param rand_seed: random seed for reproducible outcomes
-    :param n_samples: number of samples
-    :param savedir: directory for saving outputs
+    """Run genotype analyses for a specified country using calibration and sensitivity data.
+    
+    Args:
+        country (str): The ISO3 code of the country for which the analyses are to be run.
+        cal_folder (str): The folder path containing calibration files.
+        sens_folder (str): The folder path where sensitivity analysis results will be saved.
+        results_folder (str): The folder path containing results files.
+    
+    Returns:
+        None: The function performs analyses and saves the results to the specified folder.
+        
+    Raises:
+        AssertionError: If the result is a list with more than one item during output extraction.
+        
+    Notes:
+        This function loads calibration data, runs simulations based on various scenarios, 
+        and writes the outputs to specified directories. It utilizes internal mapping functions 
+        to process and aggregate results for different population groups and parameters.
     """
     P = project(
         country, load_calibration=True, cal_folder=cal_folder, load_programs=False
@@ -3226,13 +3442,22 @@ def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
 
 
 def run_coverage_analyses(country, cal_folder, sens_folder):
-    """
-    Run scenarios by changing parameter values (stochastic)
-    :param country: ISO3 of country
-    :param cal_folder: path to calibration files
-    :param rand_seed: random seed for reproducible outcomes
-    :param n_samples: number of samples
-    :param savedir: directory for saving outputs
+    """Run coverage analyses for a specified country using calibration and sensitivity folders.
+    
+    Args:
+        country (str): The name of the country for which the analyses are to be run.
+        cal_folder (str): The folder path containing calibration data.
+        sens_folder (str): The folder path for saving sensitivity analysis results.
+    
+    Returns:
+        None: The function performs analyses and saves the results to specified directories.
+    
+    Raises:
+        AssertionError: If the result is a list with more than one item during output extraction.
+        
+    Notes:
+        This function loads calibration data, runs simulations for various scenarios, and generates output files
+        containing the results of the coverage analyses. It also generates program books for the specified scenarios.
     """
     P = project(
         country, load_calibration=True, cal_folder=cal_folder, load_programs=False
@@ -3492,9 +3717,23 @@ def run_coverage_analyses(country, cal_folder, sens_folder):
 
 
 def econ_eval_central(country, sens_folder):
-    """
-    Calculate economic outcomes for point estimate run.
-
+    """Evaluate the economic impact of HCV scenarios for a given country.
+    
+    This function processes various economic and epidemiological data related to Hepatitis C Virus (HCV) for a specified country and scenario. It aggregates data from multiple sources, performs calculations related to incidence, prevalence, treatment costs, and productivity losses, and outputs the results in a structured format.
+    
+    Args:
+        country (str): The ISO3 code of the country for which the economic evaluation is performed.
+        sens_folder (Path): The path to the folder containing sensitivity analysis data.
+    
+    Returns:
+        None: The function saves the aggregated results to a specified file in the provided sensitivity folder.
+    
+    Raises:
+        FileNotFoundError: If the required data files are not found in the specified paths.
+        ValueError: If the data format is not as expected or if there are inconsistencies in the data.
+    
+    Example:
+        econ_eval_central("USA", Path("/path/to/sensitivity/folder"))
     """
     # Import scenario names and definitions for loop and mapping
     scenarios = pd.read_excel(
@@ -4125,8 +4364,16 @@ def econ_eval_central(country, sens_folder):
 
 
 def aggregate_ensembles_central(sens_folder, results_folder):
-    """
-    Aggregates outcomes into WHO regions and Global for further analysis and plotting
+    """Aggregate epidemiological and economic data from multiple countries into regional and global summaries (central results only).
+    
+    This function reads sensitivity analysis data from specified folders, aggregates the results by region and scenario, and saves the aggregated data into specified output files. It processes both epidemiological and economic outputs, including various health metrics and costs associated with disease management.
+    
+    Args:
+        sens_folder (str or Path): The path to the folder containing sensitivity analysis outputs.
+        results_folder (str or Path): The path to the folder where aggregated results will be saved.
+    
+    Returns:
+        None: The function saves the aggregated data to files but does not return any values.
     """
 
     ref_countries = pd.read_excel(
@@ -4496,6 +4743,16 @@ def aggregate_ensembles_central(sens_folder, results_folder):
 
 
 def econ_analysis_central(sens_folder):
+    """Perform economic analysis based on sensitivity analyses data (central results only).
+    
+    This function reads scenario and sensitivity analysis data from Excel files, processes the data to compute aggregate outcomes for various regions, and saves the results in specified output files. It calculates epidemiological and economic outcomes, including cost-benefit ratios (BCR) for different vaccination scenarios.
+    
+    Args:
+        sens_folder (Path): The folder path containing sensitivity analysis data.
+    
+    Returns:
+        None: The function saves the results to Excel and CSV files in the specified output directory.
+    """
 
     # Global and Regional Summary Table
     scenarios = pd.read_excel(
@@ -4676,6 +4933,21 @@ def econ_analysis_central(sens_folder):
 
 
 def write_sensitivity_table(scens_folder, sens_folder):
+    """Writes a sensitivity analysis table to an Excel file.
+    
+    This function reads scenario and sensitivity analysis data from specified folders, processes the data, and writes the results to an Excel file. The output includes the Benefit-Cost Ratios (BCR) for various regions and scenarios, along with percentage differences from baseline values.
+    
+    Args:
+        scens_folder (str or Path): The path to the folder containing scenario data.
+        sens_folder (str or Path): The path to the folder where the sensitivity analysis results will be saved.
+    
+    Returns:
+        None: The function saves the output directly to an Excel file and does not return any value.
+    
+    Raises:
+        FileNotFoundError: If the specified Excel files cannot be found.
+        ValueError: If the data in the Excel files is not in the expected format.
+    """
     regions = ["global", "top10", "AFR", "AMR", "EMR", "EUR", "SEAR", "WPR"]
     regions_spelled = [
         "Global",
