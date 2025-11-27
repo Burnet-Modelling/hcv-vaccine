@@ -78,10 +78,10 @@ The post-processing script expects results to be under the `results/` folder wit
 
 Declared in `setup.py`. Key packages:
 
-- numpy, pandas, scipy: numerical and data handling
-- sciris: utilities
-- atomica: used for compartmental modelling
-- openpyxl: read/write Excel files
+- numpy, pandas, scipy — numerical and data handling
+- sciris — utilities
+- atomica — used for compartmental modelling
+- openpyxl — read/write Excel files
 
 Install via pip as shown above.
 
