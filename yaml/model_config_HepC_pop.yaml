@@ -1,0 +1,57 @@
+---
+#Timestep for the model
+sim_dt: 0.25
+
+#Ordered instructions for how to calibrate the model
+Calibration:
+    Match female prisoners population sizes:
+        maxtime: 1000
+        adjustables:
+            (inc, Prisoners_females, 18-64_females):
+                lower_bound: 0.001
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, Prisoners_females):
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match male prisoners population sizes:
+        maxtime: 1000
+        adjustables:
+            (inc, Prisoners_males, 18-64_males):
+                lower_bound: 0.001
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, Prisoners_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match female pwid population sizes:
+        maxtime: 1000
+        adjustables:
+            (idu_status, 18-64_females, PWID_females):
+                lower_bound: 0.001
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, PWID_females):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match male pwid population sizes:
+        maxtime: 1000
+        adjustables:
+            (idu_status, 18-64_males, PWID_males):
+                lower_bound: 0.001
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, PWID_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+            

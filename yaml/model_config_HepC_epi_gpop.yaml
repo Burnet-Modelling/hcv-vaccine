@@ -1,0 +1,114 @@
+---
+#Timestep for the model
+sim_dt: 0.25
+
+Calibration:   
+    Match diagnoses:
+        maxtime: 1000
+        adjustables:
+            (test_mult_gpop,all):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (diag_nb_total, Total):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2026
+                 
+    Match female pwid prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,PWID_females):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (prev, PWID_females):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+    
+    Match male pwid prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,PWID_males):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (prev, PWID_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match female prison prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,Prisoners_females):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+        measurables:
+            (prev, Prisoners_females):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match male prison prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,Prisoners_males):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+        measurables:
+            (prev, Prisoners_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+            
+    Match plhcv:
+        maxtime: 1500
+        adjustables:
+            (infx_gen,all):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+            (infx_primary,all):
+                lower_bound: 0.1
+                upper_bound: 10.0
+                starting_y_factor: 1.0
+            (prop_treat_pre2015,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_post2015,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_pre2015_pwid,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_post2015_pwid,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+        measurables:
+            (plhcv_total, Total):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                            
+    Match deaths:
+        maxtime: 1000
+        adjustables:
+            (mult_death, all):
+                lower_bound: 0.01
+                upper_bound: 10000.0
+                starting_y_factor: 1.0
+        measurables:
+            (deaths_hcv_total, Total):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+    
