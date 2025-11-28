@@ -756,20 +756,20 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
     parset = P.make_parset()
     parset.load_calibration(cal_folder / f"{country}_calibration.xlsx")
     # Run with no sampling first
-    # result_central = P.run_sim(parset=parset)
-    # gen_pb(result_central, "central")
+    result_central = P.run_sim(parset=parset)
+    gen_pb(result_central, "central")
     pset = P.load_progbook(savedir_pb / f"progbook_{country}_central.xlsx")
     progset_instructions, scenarios = define_scenarios(P, pset)
-    # # Save central results to separate central folder as well
-    # savedir2 = savedir.parents[0] / "central" / f"{country}"
-    # savedir2.mkdir(parents=True, exist_ok=True)
-    # for p_i, scen in zip(progset_instructions, scenarios):
-    #     result_central = P.run_sim(
-    #         parset=parset, progset=pset, progset_instructions=p_i, result_name=scen
-    #     )
-    #     write_outputs(result_central, "central")
-    #     filename = f"{scen}_central_extracted.pkl"
-    #     shutil.copy(savedir / filename, savedir2 / filename)
+    # Save central results to separate central folder as well
+    savedir2 = savedir.parents[0] / "central" / f"{country}"
+    savedir2.mkdir(parents=True, exist_ok=True)
+    for p_i, scen in zip(progset_instructions, scenarios):
+        result_central = P.run_sim(
+            parset=parset, progset=pset, progset_instructions=p_i, result_name=scen
+        )
+        write_outputs(result_central, "central")
+        filename = f"{scen}_central_extracted.pkl"
+        shutil.copy(savedir / filename, savedir2 / filename)
 
     # Run with sampling
     progset = []

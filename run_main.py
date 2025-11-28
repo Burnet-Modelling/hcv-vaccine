@@ -18,8 +18,7 @@ import sys
 
 dir = ut.get_project_root()
 
-# country = sys.argv[1]
-country = 'AUS'
+country = sys.argv[1]
 rand_seed = 250711
 n_samples = 100
 results_folder = dir / "results"
@@ -32,11 +31,11 @@ sens_folder = results_folder / "sensitivity_analyses"
 sens_folder.mkdir(parents=True, exist_ok=True)
 # %%
 # Generate databook
-# generate_databook(country)
+generate_databook(country)
 
 # Run point estimate calibration
-# ut.run_calibration(country, savedir=cal_folder)
-# ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib) # plot
+ut.run_calibration(country, savedir=cal_folder)
+ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib) # plot
 
 # Run vaccine scenarios
 ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
