@@ -1,8 +1,8 @@
-import atomica as at
+import pathlib
 
-
-root = (at.parent_dir() / "..").resolve()
+rootdir = pathlib.Path(__file__).parent.parent
 
 from .utils import *
 from .parameters import *
 from .utils_plotting import *
+# from .atomica import *

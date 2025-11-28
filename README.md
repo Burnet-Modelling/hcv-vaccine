@@ -66,6 +66,7 @@ The post-processing script expects results to be under the `results/` folder wit
 ## Project structure
 
 - `hcv/` — package with model code, databook generation, utilities and plotting helpers
+- `hcv/atomica/` — modified atomica package for compartmental modelling
 - `data/` — input spreadsheets and shapefiles used to build databooks and for mapping
 - `framework/` — atomica framework of compartmental model 
 - `databooks/` — generated per-country databooks 
@@ -81,7 +82,6 @@ Declared in `setup.py`. Key packages:
 
 - numpy, pandas, scipy — numerical and data handling
 - sciris — utilities
-- atomica — used for compartmental modelling
 - openpyxl — read/write Excel files
 
 Install via pip as shown above.

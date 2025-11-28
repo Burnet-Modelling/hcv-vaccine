@@ -1,15 +1,15 @@
 import numpy as np
-import atomica as at
+from hcv import atomica as at
 import sciris as sc
 import pathlib
 import shutil
 import os
 import pandas as pd
 from os.path import isfile, join
-from hcv.parameters import iso_to_country
+from .parameters import iso_to_country
 import re
 import math
-from atomica.plotting import Series
+from .atomica.plotting import Series
 from scipy.stats import pearsonr
 
 #%% Root directory
@@ -71,19 +71,18 @@ def project(
     """
 
     # Load project framework
-    
-    F = at.ProjectFramework(rootdir / "framework" / "hcv_vaccine_framework.xlsx")
-    db_path = rootdir / "databooks"
+    fw_path = rootdir / "framework" / "hcv_vaccine_framework.xlsx"
+    F = at.ProjectFramework(fw_path)
+    db_dir = rootdir / "databooks"
 
-    db_files = [f for f in os.listdir(db_path) if isfile(join(db_path, f))]
+    db_files = [f for f in os.listdir(db_dir) if isfile(join(db_dir, f))]
     db = [i for i in db_files if country in i][0]
-    # D = at.ProjectData.from_spreadsheet(rootdir / databook_file / db, framework=F)
-    D = at.ProjectData.from_spreadsheet(join(db_path, db), framework=F)
-
+    db_path = join(db_dir, db)
+    D = at.ProjectData.from_spreadsheet(db_path, framework=F)
+    
     P = at.Project(framework=F, databook=D, do_run=False)
     P.settings.update_time_vector(start=2000, end=2051, dt=0.25)
 
-    # Load calibration (at the moment, from the autocal 241025 TODO: load the latest calibration(?)
     if load_calibration:
         if cal_version is None:
             if (cal_folder / f"{country}_calibration_v2.xlsx").is_file():
@@ -757,20 +756,20 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
     parset = P.make_parset()
     parset.load_calibration(cal_folder / f"{country}_calibration.xlsx")
     # Run with no sampling first
-    result_central = P.run_sim(parset=parset)
-    gen_pb(result_central, "central")
+    # result_central = P.run_sim(parset=parset)
+    # gen_pb(result_central, "central")
     pset = P.load_progbook(savedir_pb / f"progbook_{country}_central.xlsx")
     progset_instructions, scenarios = define_scenarios(P, pset)
-    # Save central results to separate central folder as well
-    savedir2 = savedir.parents[0] / "central" / f"{country}"
-    savedir2.mkdir(parents=True, exist_ok=True)
-    for p_i, scen in zip(progset_instructions, scenarios):
-        result_central = P.run_sim(
-            parset=parset, progset=pset, progset_instructions=p_i, result_name=scen
-        )
-        write_outputs(result_central, "central")
-        filename = f"{scen}_central_extracted.pkl"
-        shutil.copy(savedir / filename, savedir2 / filename)
+    # # Save central results to separate central folder as well
+    # savedir2 = savedir.parents[0] / "central" / f"{country}"
+    # savedir2.mkdir(parents=True, exist_ok=True)
+    # for p_i, scen in zip(progset_instructions, scenarios):
+    #     result_central = P.run_sim(
+    #         parset=parset, progset=pset, progset_instructions=p_i, result_name=scen
+    #     )
+    #     write_outputs(result_central, "central")
+    #     filename = f"{scen}_central_extracted.pkl"
+    #     shutil.copy(savedir / filename, savedir2 / filename)
 
     # Run with sampling
     progset = []

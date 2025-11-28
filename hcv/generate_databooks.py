@@ -1,8 +1,8 @@
 import numpy as np
-import atomica as at
+from hcv import atomica as at
 import pandas as pd
-import atomica.model
-atomica.model.model_settings["tolerance"] = 2e-6
+import hcv.atomica.model
+hcv.atomica.model.model_settings["tolerance"] = 2e-6
 import hcv
 import itertools
 import hcv.utils as ut

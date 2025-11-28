@@ -9,7 +9,6 @@ setup(
     install_requires=[
         "numpy",
         "sciris",
-        "atomica",
         "pandas",
         "scipy",
         "pathlib",

@@ -1,4 +1,4 @@
-import atomica as at
+from hcv import atomica as at
 import numpy as np
 import pandas as pd
 import hcv.utils as ut
@@ -115,7 +115,7 @@ def ltc_prob_to_ltfu(baseline, probability):
     Returns:
         float: The calculated LTFU value, which is the minimum of the baseline and the complement of the probability.
     """
-     return min(baseline,1-probability)
+    return min(baseline,1-probability)
 
 #%% Generate progbook function
 def generate_progbook(country, cal_folder=None, result=None, savedir=None, cov_scenario=False, cov=None):  

@@ -1,6 +1,6 @@
 from hcv import utils as ut
-import atomica as at
-import atomica.plotting as aplt
+from hcv import atomica as at
+import hcv.atomica.plotting as aplt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -590,7 +590,7 @@ def plot_calibration_forest(cal_folder):
             y_positions,
             color="blue",
             marker="s",
-            label="Global Hepatitis Report 2024 (WHO)",
+            label="World Health Organization",
             zorder=3,
         )
 
@@ -600,7 +600,7 @@ def plot_calibration_forest(cal_folder):
             y_positions,
             color="red",
             marker="^",
-            label="The Polaris Observatory (CDA Foundation)",
+            label="© CDA Foundation",
             zorder=3,
         )
 
