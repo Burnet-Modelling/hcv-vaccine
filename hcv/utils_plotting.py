@@ -90,7 +90,7 @@ def plot_outcomes(P, result, file_name, start_year=2000, end_year=2050):
     plot_data = P.data
 
     new_fig = plt.figure(
-        figsize=(20, 18)
+        figsize=(40, 18)
     )  # Make a new figure and set size (originally 22,15)
     dimensions = (4, 3)  # Lay out the subplots # (rows, columns)
     plt.subplots_adjust(hspace=0.4, wspace=0.5)  # Make some space between the plots
@@ -617,7 +617,96 @@ def plot_calibration_forest(cal_folder):
 
         # Tight layout
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+        filename = cal_folder / f'{label}.eps'
+        plt.savefig(filename, format='eps')
+        print(f'Saved figure: {filename}.')
+        
+
+def plot_calibration_combined(cal_folder):
+    """Plot calibration data for HCV incidence and prevalent cases in a 1x2 subplot layout
+    with independent sorting for each metric.
+    """
+    df_plot = pd.read_excel(
+        cal_folder / "calibration_validation.xlsx", sheet_name="Plot data"
+    )
+    
+    columns_list = [
+        ["country", "inci_model_pe", "inci_model_lb", "inci_model_ub", "inci_ghr", "inci_polaris"],
+        ["country", "plhcv_model_pe", "plhcv_model_lb", "plhcv_model_ub", "plhcv_ghr", "plhcv_polaris"],
+    ]
+    labels = ["Incidence", "Prevalent cases"]
+    titles = ["(a) Number of hepatitis C virus infections by country.",
+              "(b) Number of new hepatitis C virus infections by country."]
+
+    # Initialize 1 row, 2 columns. 
+    # Increased width to 12 to provide space for y-labels on both plots.
+    fig, axes = plt.subplots(1, 2, figsize=(12, len(df_plot) * 0.25))
+
+    for i, (cols, title, label) in enumerate(zip(columns_list, titles, labels)):
+        ax = axes[i]
+        
+        # Prepare and sort data independently for this subplot
+        df = df_plot[cols].copy()
+        df.columns = ["country", "model_pe", "model_lb", "model_ub", "ghr", "polaris"]
+        df = df.sort_values("model_pe", ascending=True)
+        
+        y_positions = range(len(df))
+
+        # Plot model estimates with 95% CI
+        ax.errorbar(
+            df["model_pe"],
+            y_positions,
+            xerr=[df["model_pe"] - df["model_lb"], df["model_ub"] - df["model_pe"]],
+            fmt="o",
+            color="black",
+            label="Model output (95% CI)",
+            capsize=4,
+            markersize=5,
+            zorder=4,
+        )
+
+        # Plot GHR estimates
+        ax.scatter(
+            df["ghr"],
+            y_positions,
+            color="blue",
+            marker="s",
+            label="World Health Organization",
+            zorder=3,
+        )
+
+        # Plot Polaris estimates
+        ax.scatter(
+            df["polaris"],
+            y_positions,
+            color="red",
+            marker="^",
+            label="© CDA Foundation",
+            zorder=3,
+        )
+
+        # Individual axis formatting
+        ax.set_title(title, loc='right', fontweight='bold', pad=15)
+        ax.set_yticks(y_positions)
+        ax.set_yticklabels(df["country"])
+        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{int(x):,}"))
+        ax.set_xlabel(label + " (2022)")
+        ax.grid(True, linestyle="--", alpha=0.5)
+        
+        # Add legend to each or just one depending on preference
+        ax.legend(loc="lower right", frameon=True, fontsize='x-small')
+
+    # tight_layout handles the padding between the two independent y-axis labels
+    plt.tight_layout()
+    
+    filename = cal_folder / 'Figure_2.pdf'
+    plt.savefig(filename, format='pdf', bbox_inches='tight')
+    print(f'Saved subplot figure: {filename}.')
+    
+    filename = cal_folder / 'Figure_2.png'
+    plt.savefig(filename, format='png', bbox_inches='tight')
+    print(f'Saved subplot figure: {filename}.')
 
 
 def dynamic_unit_formatter(ax):
@@ -763,6 +852,137 @@ def plot_outcomes_timeseries(scens_folder, regions=["global"], scenarios="all"):
     plt.show()
 
 
+def plot_outcomes_journal(scens_folder):
+    """Plot outcomes time series in a 3x3 grid with row-based scenario groups."""
+    regions = ["global"]
+    # Data retrieval (assuming ut and rootdir are defined in your environment)
+    plot_data = ut.calc_outcomes_region(scens_folder, n_samples=100, regions=regions)
+    region = "global"
+    
+    # Ensure we have exactly 3 outcomes for 3 columns
+    epi_outcomes = list(plot_data[region].keys())
+    if len(epi_outcomes) > 3:
+        epi_outcomes = epi_outcomes[:3]
+        
+    data_progbook = rootdir / "data" / "progbook_inputs.xlsx"
+    df_scenarios = pd.read_excel(pd.ExcelFile(data_progbook), sheet_name="scenarios")
+    df = df_scenarios[df_scenarios.counterfactual.str.len() > 0]
+    scenario_description = dict(zip(df["scenario_name"], df["description"]))
+    
+    # Row configuration
+    scenario_groups = [
+        ['scenario_0'],
+        ['scenario_1'],
+        ['scenario_2', 'scenario_3', 'scenario_4']
+    ]
+    row_titles = [
+        "(a) Scenario 1.",
+        "(b) Scenario 2.",
+        "(c) Scenarios 3, 4, and 5."
+    ]
+    
+    counterfactuals = {0: 1, 1: 2, 2: 3, 3: 3, 4: 3}
+    colors_order = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+    fig, axes = plt.subplots(3, 3, figsize=(18, 16), sharex=False)
+    
+    # Storage for legend handles to ensure no duplicates
+    all_handles = {}
+
+    for row_idx, group in enumerate(scenario_groups):
+        for col_idx, par in enumerate(epi_outcomes):
+            ax = axes[row_idx, col_idx]
+            
+            for scen in group:
+                scen_name = scenario_description[scen]
+                scen_num = int(re.findall(r"\d+", scen)[0])
+                scen_label = f"Scenario {scen_num + 1}"
+                
+                d = plot_data[region][par][scen_name]
+
+                # Main Scenario Plot
+                line, = ax.plot(
+                    d["years"], d["central"],
+                    label=scen_label,
+                    lw=3.5, color=colors_order[scen_num]
+                )
+                ax.fill_between(
+                    d["years"], d["lb"], d["ub"],
+                    alpha=0.1, color=colors_order[scen_num]
+                )
+                
+                # Collect handles for the global legend
+                if scen_label not in all_handles:
+                    all_handles[scen_label] = line
+
+                # Counterfactual (plot on every subplot, but collect handle once)
+                cf_idx = counterfactuals[scen_num]
+                cf_label = f"Counterfactual scenarios"
+                cf_line, = ax.plot(
+                    d["years"], d["cf_central"],
+                    ls="--", color="gray", lw=2.5,
+                    # label=cf_label
+                )
+                if cf_label not in all_handles:
+                    all_handles[cf_label] = cf_line
+
+            # --- Formatting ---
+            if col_idx == 0:
+            #     ax.set_ylabel("Number of cases", fontsize=14, fontweight='bold')
+            #     # Row titles on the far left
+                ax.text(-0.2, 1.05, row_titles[row_idx], transform=ax.transAxes, 
+                        fontsize=18, fontweight='bold', va='bottom')
+
+            # if row_idx == 0:
+            # ax.set_title(par, fontsize=18, pad=25, fontweight='bold')
+            ax.set_ylabel(par, fontsize=16)
+            # if row_idx == 2:
+            ax.set_xlabel("Year", fontsize=16)
+
+            ax.set_xlim(2020, 2050)
+            if par in ["HCV incidence", "Vaccines administered"]:
+                ax.set_ylim(bottom=0)
+            
+            ax.yaxis.set_major_formatter(dynamic_unit_formatter(ax))
+            ax.tick_params(axis="both", labelsize=12)
+            ax.grid(True, linestyle=":", alpha=0.6)
+            
+            for spine in ax.spines.values():
+                spine.set_linewidth(1.5)
+
+    # --- Global Shared Legend ---
+    # Sort handles so Scenarios 1-5 appear in order, followed by Counterfactuals
+    sorted_labels = sorted([k for k in all_handles.keys() if "Scenario" in k], 
+                           key=lambda x: int(x.split()[-1]))
+    cf_labels = sorted([k for k in all_handles.keys() if "Counterfactual" in k])
+    
+    final_labels = sorted_labels + cf_labels
+    final_handles = [all_handles[lbl] for lbl in final_labels]
+
+    fig.legend(
+        final_handles, 
+        final_labels,
+        loc="lower center", 
+        ncol=4, 
+        fontsize=14, 
+        frameon=True,
+        bbox_to_anchor=(0.5, 0.02)
+    )
+
+    # Adjust layout to make room for bottom legend and row titles
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.1, hspace=0.4, wspace=0.3)
+    
+    # Save as EPS
+    save_path = scens_folder / "Figure_3.pdf"
+    plt.savefig(save_path, format='pdf', bbox_inches='tight')
+    print(f"Figure saved as {save_path}")
+    
+    save_path = scens_folder / "Figure_3.png"
+    plt.savefig(save_path, format='png', bbox_inches='tight')
+    print(f"Figure saved as {save_path}")
+    plt.show()
+    
 def plot_calibration_panel(scens_folder, cal_folder, n_samples=100):
     """Generates a multi-page calibration panel plot for various health outcomes across multiple countries.
     

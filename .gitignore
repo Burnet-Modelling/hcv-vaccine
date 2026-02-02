@@ -8,3 +8,6 @@ hcv_multi/test.py
 */autocalibration_tool/*
 .idea
 /.github/prompts
+test.xlsx
+test.py
+/calibration/plots

@@ -60,8 +60,11 @@ ut_plt.plot_bcr_map(scens_folder)
 ## Time-series panel plot of outcomes
 for scenarios in [['scenario_0'],['scenario_1'],['scenario_2','scenario_3','scenario_4']]: # bundle scenarios with same counterfactual
     ut_plt.plot_outcomes_timeseries(scens_folder,scenarios=scenarios)
+    
+ut_plt.plot_outcomes_journal(scens_folder)
+    
 #%%
 ut_plt.plot_calibration_forest(cal_folder)
-
+ut_plt.plot_calibration_combined(cal_folder)
 # %%
 ut_plt.plot_calibration_panel(scens_folder, cal_folder)
