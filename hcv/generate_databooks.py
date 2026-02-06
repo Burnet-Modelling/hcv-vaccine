@@ -182,11 +182,11 @@ def generate_databook(country, savedir=None):
     
     for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0]
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0] if data[col_label].values[0]>0 else 0
 
     for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0]
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0] if data[col_label].values[0]>0 else 0
             
     
     ### Migration
