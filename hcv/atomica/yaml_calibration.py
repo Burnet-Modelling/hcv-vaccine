@@ -7,7 +7,7 @@ adjustables and measurables in a pre-defined sequence of automated calibration s
 import sciris as sc
 from pathlib import Path
 import shutil
-import atomica as at
+import hcv.atomica as at
 import numpy as np
 import yaml
 import time

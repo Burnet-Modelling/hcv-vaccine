@@ -1,5 +1,5 @@
 import numpy as np
-from hcv import atomica as at
+import hcv.atomica as at
 import sciris as sc
 import pathlib
 import shutil
@@ -9,7 +9,7 @@ from os.path import isfile, join
 from .parameters import iso_to_country
 import re
 import math
-from .atomica.plotting import Series
+from hcv.atomica.plotting import Series
 from scipy.stats import pearsonr
 
 #%% Root directory
