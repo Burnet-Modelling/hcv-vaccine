@@ -115,56 +115,78 @@ def generate_databook(country, savedir=None):
     D.transfers[1].ts['PWID_females','18-64_females'].units = 'Rate (per year)'
     D.transfers[1].ts['PWID_females','18-64_females'].assumption = np.mean(data['Rate out'].values)
     
-    ### Prison transfers    
-    data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Transfers')
+    # ### Prison transfers    
+    # data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Transfers')
+    # data = data[data.ISO3 == country]
+    # prison_transfer_in_map = { 
+    #     ('18-64_males', 'Prisoners_males'): 'Male admission rate (general)', 
+    #     ('PWID_males', 'Prisoners_males'): 'Male admission rate (PWID)', 
+    #     ('18-64_females', 'Prisoners_females'): 'Female admission rate (general)', 
+    #     ('PWID_females', 'Prisoners_females'): 'Female admission rate (PWID)'}
+    # prison_transfer_out_map = { 
+    #     ('Prisoners_males', '18-64_males'): 'Male release rate (general)', 
+    #     ('Prisoners_males', 'PWID_males'): 'Male release rate (PWID)', 
+    #     ('Prisoners_females', '18-64_females'): 'Female release rate (general)', 
+    #     ('Prisoners_females', 'PWID_females'): 'Female release rate (PWID)' }
+    
+    # for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = data.loc[data[col_label].fillna(0)!=0,'Year'].tolist()
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = data.loc[data[col_label].fillna(0)!=0,col_label].tolist()
+        
+    # # Estimate exit rate based on entry rate and pop size for countries with entry but no exit data (note this will be calibrated any way)
+    # for (pop_from_out, pop_to_out), (pop_from_in, pop_to_in) in zip(list(prison_transfer_out_map.keys()),list(prison_transfer_in_map.keys())):        
+    #     alive_prison_t = D.tdve['alive'].ts[pop_from_out].t
+    #     alive_prison_vals = D.tdve['alive'].ts[pop_from_out].vals
+    #     alive_gpop_t = D.tdve['alive'].ts[pop_to_out].t
+    #     alive_gpop_vals = D.tdve['alive'].ts[pop_to_out].vals
+    #     if (D.transfers[2].ts[(pop_from_out, pop_to_out)].vals == []) and (D.transfers[2].ts[(pop_from_in, pop_to_in)].vals != []):
+    #         for idx, year in enumerate(D.transfers[2].ts[(pop_from_in, pop_to_in)].t):
+    #             idx_prison = min(range(len(alive_prison_t)), key=lambda i: abs(alive_prison_t[i]-year)) # find index of pop size value closest to "year"
+    #             idx_gpop = min(range(len(alive_gpop_t)), key=lambda i: abs(alive_gpop_t[i]-year)) # find index of pop size value closest to "year"
+    #             D.transfers[2].ts[(pop_from_out, pop_to_out)].t.append(year)
+    #             flow_out = D.transfers[2].ts[(pop_from_in, pop_to_in)].vals[idx]*alive_gpop_vals[idx_gpop]/max(alive_prison_vals[idx_prison],1e-6) # this assumes a stable prison pop size
+    #             D.transfers[2].ts[(pop_from_out, pop_to_out)].vals.append(flow_out)
+
+    # for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     if not D.transfers[2].ts[(pop_from, pop_to)].vals:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
+    #     else:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = []
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = []
+
+    # for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     if not D.transfers[2].ts[(pop_from, pop_to)].vals:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
+    #     else:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = []
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = []
+    
+    ### Prison transfers (new)  
+    data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Flows')
     data = data[data.ISO3 == country]
     prison_transfer_in_map = { 
-        ('18-64_males', 'Prisoners_males'): 'Male admission rate (general)', 
-        ('PWID_males', 'Prisoners_males'): 'Male admission rate (PWID)', 
-        ('18-64_females', 'Prisoners_females'): 'Female admission rate (general)', 
-        ('PWID_females', 'Prisoners_females'): 'Female admission rate (PWID)'}
+        ('18-64_males', 'Prisoners_males'): 'rate_in_18_64_males', 
+        ('PWID_males', 'Prisoners_males'): 'rate_in_pwid_males', 
+        ('18-64_females', 'Prisoners_females'): 'rate_in_18_64_females', 
+        ('PWID_females', 'Prisoners_females'): 'rate_in_pwid_females'}
     prison_transfer_out_map = { 
-        ('Prisoners_males', '18-64_males'): 'Male release rate (general)', 
-        ('Prisoners_males', 'PWID_males'): 'Male release rate (PWID)', 
-        ('Prisoners_females', '18-64_females'): 'Female release rate (general)', 
-        ('Prisoners_females', 'PWID_females'): 'Female release rate (PWID)' }
+        ('Prisoners_males', '18-64_males'): 'rate_out_to_18_64_males', 
+        ('Prisoners_males', 'PWID_males'): 'rate_out_to_pwid_males', 
+        ('Prisoners_females', '18-64_females'): 'rate_out_to_18_64_females', 
+        ('Prisoners_females', 'PWID_females'): 'rate_out_to_pwid_females' }
     
     for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        D.transfers[2].ts[(pop_from, pop_to)].t = data.loc[data[col_label].fillna(0)!=0,'Year'].tolist()
-        D.transfers[2].ts[(pop_from, pop_to)].vals = data.loc[data[col_label].fillna(0)!=0,col_label].tolist()
-        
-    # Estimate exit rate based on entry rate and pop size for countries with entry but no exit data (note this will be calibrated any way)
-    for (pop_from_out, pop_to_out), (pop_from_in, pop_to_in) in zip(list(prison_transfer_out_map.keys()),list(prison_transfer_in_map.keys())):        
-        alive_prison_t = D.tdve['alive'].ts[pop_from_out].t
-        alive_prison_vals = D.tdve['alive'].ts[pop_from_out].vals
-        alive_gpop_t = D.tdve['alive'].ts[pop_to_out].t
-        alive_gpop_vals = D.tdve['alive'].ts[pop_to_out].vals
-        if (D.transfers[2].ts[(pop_from_out, pop_to_out)].vals == []) and (D.transfers[2].ts[(pop_from_in, pop_to_in)].vals != []):
-            for idx, year in enumerate(D.transfers[2].ts[(pop_from_in, pop_to_in)].t):
-                idx_prison = min(range(len(alive_prison_t)), key=lambda i: abs(alive_prison_t[i]-year)) # find index of pop size value closest to "year"
-                idx_gpop = min(range(len(alive_gpop_t)), key=lambda i: abs(alive_gpop_t[i]-year)) # find index of pop size value closest to "year"
-                D.transfers[2].ts[(pop_from_out, pop_to_out)].t.append(year)
-                flow_out = D.transfers[2].ts[(pop_from_in, pop_to_in)].vals[idx]*alive_gpop_vals[idx_gpop]/max(alive_prison_vals[idx_prison],1e-6) # this assumes a stable prison pop size
-                D.transfers[2].ts[(pop_from_out, pop_to_out)].vals.append(flow_out)
-
-    for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
-        D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        if not D.transfers[2].ts[(pop_from, pop_to)].vals:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
-        else:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
-        D.transfers[2].ts[(pop_from, pop_to)].t = []
-        D.transfers[2].ts[(pop_from, pop_to)].vals = []
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0]
 
     for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        if not D.transfers[2].ts[(pop_from, pop_to)].vals:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
-        else:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
-        D.transfers[2].ts[(pop_from, pop_to)].t = []
-        D.transfers[2].ts[(pop_from, pop_to)].vals = []
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0]
             
     
     ### Migration
@@ -471,7 +493,7 @@ def generate_databook(country, savedir=None):
     stages = ['f0', 'f1', 'f2', 'f3', 'f4', 'dc', 'hcc']
     pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_males','Prisoners_females']
     for pop in D.pops:
-        if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > atomica.model.model_settings['tolerance']:
+        if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > hcv.atomica.model.model_settings['tolerance']:
             print('ERROR: Disease stage proportions do not add up to 1')
         
         D.tdve['total_hcv'].ts[pop].t = [2000]

@@ -310,6 +310,385 @@ def plot_outcomes(P, result, file_name, start_year=2000, end_year=2050):
     # plt.show()
 
 
+def plot_outcomes2(P, result, file_name, start_year=2000, end_year=2050):
+    '''
+    Produces a panel plot for manual calibraiton use
+    :param P: atomica project
+    :param result: atomica result object
+    :param dirname: directory for saving the figure
+    :return: panel plot
+    '''
+    plt.rcParams['font.size'] = 10
+    # Adjust plotting settings
+    aplt.settings['legend_mode'] = ''
+    aplt.settings['marker_edge_width'] = 1.0
+    
+    plot_data = P.data
+
+    new_fig = plt.figure(figsize=(20,18))  # Make a new figure and set size (originally 22,15)
+    dimensions = (6, 5)  # Lay out the subplots # (rows, columns)
+    plt.subplots_adjust(hspace=.4, wspace=0.5)  # Make some space between the plots
+    plt.suptitle(file_name, fontsize =40)
+
+    ########## Population sizes
+    warnings.filterwarnings("ignore")
+    
+    gpop_pops_males = ['0-9_males','10-17_males','18-64_males','65+_males']
+    gpop_pops_females = ['0-9_females','10-17_females','18-64_females','65+_females']
+
+    d = at.PlotData(result, pops=['0-9_females', '0-9_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data)
+    plt.legend(['females', '_', 'males'])
+    plt.title('General population 0-9 years')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 1, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['10-17_females', '10-17_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = 'best')
+    plt.title('General population 10-17 years')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 6, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['18-64_females', '18-64_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = True)
+    plt.title('General population 18-64 years')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 11, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['65+_females', '65+_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = True)
+    plt.title('General population 65+ years')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 16, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['PWID_females', 'PWID_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = True)
+    plt.title('People who inject drugs')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 21, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['Prisoners_females', 'Prisoners_males'], outputs=['alive'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = True)
+    plt.title('People in prison')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 26, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['0-9_females', '0-9_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops')
+    plt.title('General population 0-9 years')
+    plt.legend(['females', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=1)
+    # plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 2, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['10-17_females', '10-17_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops')
+    plt.title('General population 10-17 years')
+    plt.legend(['females', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    # plt.ylim(bottom=0,top=yl[1])
+    plt.ylim(bottom=0,top=1)
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 7, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['18-64_females', '18-64_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops')
+    plt.title('General population 18-64 years')
+    plt.legend(['females', 'males'])
+    plt.xlim([start_year,end_year])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 12, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['65+_females', '65+_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops')
+    plt.title('General population 65+ years')
+    plt.legend(['females', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 17, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['PWID_females', 'PWID_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data)
+    plt.title('People who inject drugs')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 22, new_fig, dimensions)
+
+    d = at.PlotData(result, pops=['Prisoners_females', 'Prisoners_males'], outputs=['prevalence'], project=P)
+    fig_demo = at.plot_series(d, axis='pops', data=plot_data)
+    plt.title('People in prison')
+    plt.legend(['females', '_', 'males'])
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 27, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'total_hcv', pop_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    plt.scatter(plot_data.tdve['plhcv_total'].ts['Total'].t,plot_data.tdve['plhcv_total'].ts['Total'].vals,
+                facecolors='none', edgecolors='k')
+    plt.autoscale()
+    plt.title('Number of PLHCV')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 3, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'deaths_hcv', pop_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    plt.scatter(plot_data.tdve['deaths_hcv_total'].ts['Total'].t,plot_data.tdve['deaths_hcv_total'].ts['Total'].vals,
+                facecolors='none', edgecolors='k')
+    plt.autoscale()
+    plt.title('Number of HCV deaths')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 8, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'tx_m', pop_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    plt.scatter(plot_data.tdve['treat_total'].ts['Total'].t,plot_data.tdve['treat_total'].ts['Total'].vals,
+                facecolors='none', edgecolors='k')
+    plt.autoscale()
+    plt.title('Number of treatments')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 13, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'notifications_m', pop_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    plt.scatter(plot_data.tdve['diag_nb_total'].ts['Total'].t,plot_data.tdve['diag_nb_total'].ts['Total'].vals,
+                facecolors='none', edgecolors='k')
+    plt.autoscale()
+    plt.title('Number of new diagnoses')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 18, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'inci_all_m', pop_aggregation='sum',output_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    # plt.scatter(plot_data.tdve['cirrhosis_total'].ts['Total'].t,plot_data.tdve['cirrhosis_total'].ts['Total'].vals,
+    #             facecolors='none', edgecolors='C0')
+    plt.autoscale()
+    plt.title('Number of new infections')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 23, new_fig, dimensions)
+
+    d = at.PlotData(result,pops=[{'total':list(P.data.pops)}], outputs = 'hcc_inci', pop_aggregation='sum',output_aggregation='sum')
+    fig_demo = at.plot_series(d,axis='results')
+    # plt.scatter(plot_data.tdve['dc_total'].ts['Total'].t,plot_data.tdve['dc_total'].ts['Total'].vals,
+    #             facecolors='none', edgecolors='C0')
+    plt.autoscale()
+    plt.title('Number of new HCC cases')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_demo[0], 28, new_fig, dimensions)
+
+    #  # Stacked PLHCV
+    aplt.settings['legend_mode'] = 'together'
+    stacked2 = at.PlotData([result], pops=[{'Remainder population (males)': gpop_pops_males},
+                                           {'Remainder population (females)': gpop_pops_females},
+                                            {'People in prison (males)': ['Prisoners_males']},
+                                            {'People in prison (females)': ['Prisoners_females']},
+                                            {'People who inject drugs (males)': ['PWID_males']},
+                                            {'People who inject drugs (females)': ['PWID_females']}
+                                            ],
+                           outputs='total_hcv', project=P)
+    fig_prog = at.plot_series(stacked2, axis='pops', plot_type='stacked')
+    plt.title('PLHCV by population group')
+    plt.autoscale()
+    yl = plt.ylim()
+    plt.ylim(bottom=0,top=yl[1])
+    plt.xlim([start_year,end_year])
+    plt.grid(False) 
+    panel_plot(fig_prog[0], 4, new_fig, dimensions)
+
+    # stacked1 = at.PlotData([result],
+    #                        pops=[{'total':list(P.data.pops)}],
+    #                        outputs=['prop_f0f2', 'prop_f3', 'prop_f4', 'prop_dc', 'prop_hcc'],
+    #                        output_aggregation='weighted', project=P)
+    # fig_prog = at.plot_series(stacked1, plot_type='stacked')
+    # plt.title('PLHCV by disease stage')
+    # plt.autoscale()
+    # yl = plt.ylim()
+    # plt.ylim(bottom=0,top=yl[1])
+    # plt.xlim([start_year,end_year])
+    # plt.grid(False) 
+    # panel_plot(fig_prog[0], 9, new_fig, dimensions)
+
+    # stacked2 = at.PlotData([result],
+    #                        pops=[{'total':list(P.data.pops)}],
+    #                        outputs=[{'Acute':['acute_all']},
+    #                                 {'Undiagnosed':['undiag_all']},
+    #                                 {'Ab+ Diagnosed':['abpos_chronic']}, 
+    #                                 {'RNA+ Diagnosed':['pcr']},
+    #                                 {'On treatment':['treated']}],
+    #                                 # {'Failed treatment':['treated_fail']}],
+    #                        pop_aggregation='sum', project=P)
+    # fig_prog = at.plot_series(stacked2, plot_type='stacked')
+    # plt.scatter(plot_data.tdve['plhcv_total'].ts['Total'].t, plot_data.tdve['plhcv_total'].ts['Total'].vals,
+    #             facecolors='k', edgecolors='k')
+    # plt.title('PLHCV by cascade of care')
+    # plt.autoscale()
+    # yl = plt.ylim()
+    # plt.ylim(bottom=0,top=yl[1])
+    # plt.xlim([start_year,end_year])
+    # plt.grid(False) 
+    # panel_plot(fig_prog[0], 14, new_fig, dimensions)
+
+    # stacked2 = at.PlotData([result],
+    #                        pops=[{'Remainder population (males)': gpop_pops_males},
+    #                              {'Remainder population (females)': gpop_pops_females},
+    #                              {'People in prison (males)': ['Prisoners_males']},
+    #                              {'People in prison (females)': ['Prisoners_females']},
+    #                              {'People who inject drugs (males)': ['PWID_males']},
+    #                              {'People who inject drugs (females)': ['PWID_females']},
+    #                              ],
+    #                        outputs='inci_all_m', 
+    #                        pop_aggregation='sum',
+    #                        project=P)
+    # fig_demo = at.plot_series(stacked2,axis='pops', plot_type='stacked')
+    # plt.title('Number of new infections')
+    # yl = plt.ylim()
+    # plt.ylim(bottom=0,top=yl[1])
+    # plt.xlim([start_year,end_year])
+    # plt.autoscale()
+    # plt.grid(False) 
+    # panel_plot(fig_demo[0], 19, new_fig, dimensions)
+    
+    # # cascade of the disease in end_year
+    # d = at.PlotData(result, project=P, pops='total', outputs='total_hcv')
+    # names = ['% undiagnosed', '% diagnosed but not treated', '% treated']
+    
+    # # Plot cascade
+    # pops_cc = [['PWID_females'],['PWID_males'],['Prisoners_females'],['Prisoners_males'],gpop_pops_females,gpop_pops_males]
+    # pops_cc_names = ['PWID (females)','PWID (males)', 
+    #                 'Prison (females)','Prison (males)',
+    #                 'gPop (females)', 'gPop (males)']
+    # for year, fig_pos in zip([2020,2030],[24,29]):
+    #     undiag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     diag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     treat_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     for pops, pops_name in zip(pops_cc,pops_cc_names):
+    #         undiag_pc_pop, diag_pc_pop, treat_pc_pop = ut.cascade_percents(result, pops, year)
+    #         undiag_pc[pops_name] = undiag_pc_pop
+    #         diag_pc[pops_name] = diag_pc_pop
+    #         treat_pc[pops_name] = treat_pc_pop
+            
+    #     df_cascade_pc = pd.DataFrame([undiag_pc, diag_pc, treat_pc])
+    #     df_cascade_pc = df_cascade_pc.T
+    #     df_cascade_pc.columns = ['% undiagnosed','% diagnosed but not treated','% treated']
+        
+    #     fig = plt.figure(figsize = (20, 16))
+    #     fig.add_axes([0.75, 1, 0.75, 1]) 
+    #     fig.set_size_inches(20, 16)
+      
+    #     bars = []
+    #     treat = []
+    #     undiag = []
+    #     diag = []
+    #     for pop in undiag_pc.keys():
+    #         bars.append(pop)
+    #     for res in bars:
+    #         tr = treat_pc[res]
+    #         treat.append(tr)
+    #         dx = diag_pc[res]
+    #         diag.append(dx)
+    #         udx = undiag_pc[res]
+    #         undiag.append(udx)
+    #     treat =  np.array(treat)
+    #     diag =  np.array(diag)   
+    #     undiag =  np.array(undiag) 
+        
+    #     # plot bars in stack manner
+    #     plt.bar(bars, undiag, color='r')
+    #     plt.bar(bars, diag, bottom=undiag, color='y')
+    #     plt.bar(bars, treat, bottom=undiag+diag, color='g')
+    #     plt.legend(names, bbox_to_anchor=(1,1), frameon=False)
+    #     plt.title(f'{year} care cascade')
+    #     if year == 2020:
+    #         plt.xticks(ticks=[],labels=[])
+    #     else:
+    #         plt.xticks(rotation=45, ha='right')
+    #     plt.grid(False) 
+    #     panel_plot(fig, fig_pos, new_fig, dimensions)
+    
+
+
+    # df_plot = df_cascade_pc.drop('Prisoners')
+    # ax = df_plot.plot.bar(stacked=True, color=['r','y','g'])
+    # plt.xticks(rotation=45, ha='right')
+    # plt.legend(df_cascade_pc.columns, bbox_to_anchor=(1,1), frameon=False)
+    # ax.set_yticks([0,0.2,0.4,0.6,0.8,1])
+    # ax.set_yticklabels(['0%','20%','40%','60%','80%','100%'])
+    # panel_plot(fig_demo[0], 24, new_fig, dimensions)
+    
+    plt.show()
+
 def plot_calibration(country, cal_folder, savedir, cal_version=None):
     """Plot calibration results for a specified country.
     
@@ -337,6 +716,9 @@ def plot_calibration(country, cal_folder, savedir, cal_version=None):
     plot_outcomes(P, result_baseline, iso_to_country[country])
     plt.savefig(savedir / f"{country}.png")
     print(f"plot saved: {savedir}/{country}.png")
+    plot_outcomes2(P, result_baseline, iso_to_country[country])
+    plt.savefig(savedir / f"{country}_2.png")
+    print(f"plot saved: {savedir}/{country}_2.png")
     plt.show()
     plt.close("all")
 
