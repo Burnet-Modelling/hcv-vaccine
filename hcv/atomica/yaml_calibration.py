@@ -15,7 +15,7 @@ import re
 
 __all__ = ["build", "run"]
 
-from atomica import ParameterSet
+from hcv.atomica import ParameterSet
 
 
 def _get_named_nodes():

@@ -241,7 +241,7 @@ class Initialization:
         :return: A new ``Initialization`` instance
         """
 
-        from atomica.model import TimedCompartment  # Avoid circular import
+        from hcv.atomica.model import TimedCompartment  # Avoid circular import
 
         if year is None:
             year = res.model.t[-1]
@@ -301,7 +301,7 @@ class Initialization:
         :param framework: Optionally specify a framework object containing the specification of which comps/characs are used for initialization
         :param parset: Optionally specify the requested parset for initialization containing Y-factors to compare to the saved Y-factors
         """
-        from atomica.model import TimedCompartment  # Avoid circular import
+        from hcv.atomica.model import TimedCompartment  # Avoid circular import
 
         # Check the y-factors
         if self.init_y_factor_hash is not None and framework is not None and parset is not None:
@@ -369,7 +369,7 @@ class Initialization:
         """
         # excelfile = spreadsheet.pandas()
 
-        metadata, value_df = atomica.excel.read_dataframes(excelfile.book["Initialization"])
+        metadata, value_df = hcv.atomica.excel.read_dataframes(excelfile.book["Initialization"])
 
         values = {}
         for k, s in value_df.T.reset_index().T.set_index([0, 1]).iterrows():
