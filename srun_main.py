@@ -15,12 +15,13 @@ from hcv.generate_databooks import generate_databook
 from gitlab_utils import _get_sharepoint_folder
 from hcv import utils as ut
 from hcv import utils_plotting as ut_plt
-import pathlib
+from pathlib import Path
 import sys
-dir = pathlib.Path(_get_sharepoint_folder())
+# dir = pathlib.Path(_get_sharepoint_folder())
+dir = Path(__file__).resolve().parent
 
-# country = sys.argv[1]
-country='CHE'
+country = sys.argv[1]
+# country='CHE'
 rand_seed=250711
 n_samples=100
 results_folder = dir/'results'
