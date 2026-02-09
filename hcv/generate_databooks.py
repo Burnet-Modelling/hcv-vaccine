@@ -69,8 +69,20 @@ def generate_databook(country, savedir=None):
                 D.tdve['alive'].ts[pop].vals.append(D.tdve['alive'].ts[pop].vals[0])
             else:
                 D.tdve['alive'].ts[pop].vals.append(np.average(D.tdve['alive'].ts[pop].vals))
-
     
+    # pwid_pris = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name= 'Country-PWID Pop Estimates')
+    # pwid_pris = pwid_pris[pwid_pris.ISO3 == country]
+    # pwid_males_pris_pop = pwid_pris["Male IDU Prisoner Pop"].values[0]
+    # pwid_females_pris_pop = pwid_pris["Female IDU Prisoner Pop"].values[0]
+    # D.tdve['alive'].ts["Prisoners_PWID_males"].t.append(2000)
+    # D.tdve['alive'].ts["Prisoners_PWID_males"].vals.append(pwid_males_pris_pop)
+    # for idx,val in enumerate(D.tdve['alive'].ts["Prisoners_males"].vals):
+    #     D.tdve['alive'].ts["Prisoners_males"].vals[idx] = min(val-pwid_males_pris_pop,0)
+    # D.tdve['alive'].ts["Prisoners_PWID_females"].t.append(2000)
+    # D.tdve['alive'].ts["Prisoners_PWID_females"].vals.append(pwid_females_pris_pop)
+    # D.tdve['alive'].ts["Prisoners_females"].vals = np.array(pris_f_v)-pwid_females_pris_pop
+    # D.tdve['alive'].ts["Prisoners_males"].vals = np.array(pris_m_v)-pwid_males_pris_pop
+        
     # Delete not-used interactions
     interactions_idu = list(zip(hcv.default_pops_inter,hcv.default_pops_inter))
     sexes = ['males', 'females']
@@ -171,14 +183,14 @@ def generate_databook(country, savedir=None):
     data = data[data.ISO3 == country]
     prison_transfer_in_map = { 
         ('18-64_males', 'Prisoners_males'): 'rate_in_18_64_males', 
-        ('PWID_males', 'Prisoners_males'): 'rate_in_pwid_males', 
+        ('PWID_males', 'Prisoners_PWID_males'): 'rate_in_pwid_males', 
         ('18-64_females', 'Prisoners_females'): 'rate_in_18_64_females', 
-        ('PWID_females', 'Prisoners_females'): 'rate_in_pwid_females'}
+        ('PWID_females', 'Prisoners_PWID_females'): 'rate_in_pwid_females'}
     prison_transfer_out_map = { 
-        ('Prisoners_males', '18-64_males'): 'rate_out_to_18_64_males', 
-        ('Prisoners_males', 'PWID_males'): 'rate_out_to_pwid_males', 
-        ('Prisoners_females', '18-64_females'): 'rate_out_to_18_64_females', 
-        ('Prisoners_females', 'PWID_females'): 'rate_out_to_pwid_females' }
+        ('Prisoners_males', '18-64_males'): 'rate_out_18_64_males', 
+        ('Prisoners_PWID_males', 'PWID_males'): 'rate_out_pwid_males', 
+        ('Prisoners_females', '18-64_females'): 'rate_out_18_64_females', 
+        ('Prisoners_PWID_females', 'PWID_females'): 'rate_out_pwid_females' }
     
     for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
@@ -187,7 +199,13 @@ def generate_databook(country, savedir=None):
     for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
         D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0] if data[col_label].values[0]>0 else 0
-            
+    
+    for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+        if D.transfers[2].ts[(pop_from, pop_to)].assumption == '':
+            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
+    for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
+        if D.transfers[2].ts[(pop_from, pop_to)].assumption == '':
+            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
     
     ### Migration
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-Net Migration')
@@ -206,20 +224,21 @@ def generate_databook(country, savedir=None):
         D.tdve['mig_r'].ts[pop_code].t = data['Year'].values
         D.tdve['mig_r'].ts[pop_code].vals = data[pop_label].values
         
-    for pop_code in ['PWID_males','PWID_females','Prisoners_males','Prisoners_females']:
+    for pop_code in ['PWID_males','PWID_females','Prisoners_males','Prisoners_females','Prisoners_PWID_males','Prisoners_PWID_females']:
         D.tdve['mig_r'].ts[pop_code].assumption = 0
     
     ## Global Parameter Values
     ### Disease Progression
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Global-Disease Progression')
-
+    
+    general_populations = ["PWID", "0-9", "10-17", "18-64", "65+", "Prisoners", "Prisoners_PWID"]
     for idx, row in data.iterrows():
         if row['Parameter Code Name'] == 'prop_clear':
             if row['Population(s)'] == 'female all':
-                for pop in hcv.general_populations:
+                for pop in general_populations:
                     D.tdve[row['Parameter Code Name']].ts[pop + '_females'].assumption = row['Default Value']
             elif row['Population(s)'] == 'male all':
-                for pop in hcv.general_populations:
+                for pop in general_populations:
                     D.tdve[row['Parameter Code Name']].ts[pop + '_males'].assumption = row['Default Value']
         else:
             for pop in D.pops:
@@ -312,7 +331,7 @@ def generate_databook(country, savedir=None):
                 D.tdve[row['Code Name']].ts[pop].t = list(data[~pd.isna(data[row['Display Name']])].Year)
                 D.tdve[row['Code Name']].ts[pop].vals = list(data[~pd.isna(data[row['Display Name']])][row['Display Name']])
         elif row['Population'] == 'Prisoners all':
-            for pop in ['Prisoners_males', 'Prisoners_females']:
+            for pop in ['Prisoners_males', 'Prisoners_females','Prisoners_PWID_males','Prisoners_PWID_females']:
                 D.tdve[row['Code Name']].ts[pop].t = list(data[~pd.isna(data[row['Display Name']])].Year)
                 D.tdve[row['Code Name']].ts[pop].vals = list(data[~pd.isna(data[row['Display Name']])][row['Display Name']])
         else:
@@ -324,11 +343,12 @@ def generate_databook(country, savedir=None):
                          sheet_name='Country-Prison Prevalence')
     data2 = data2[data2.ISO3 == country]
 
-    for pop in ['Prisoners_males', 'Prisoners_females']:  # Burden Estimates (prisoners) (if empty)
+    for pop in ['Prisoners_PWID_males', 'Prisoners_PWID_females']:  # Burden Estimates (prisoners) (if empty)
         sx = pop[10:-1]
         if len(D.tdve['prevalence'].ts[pop].vals) == 0:
             D.tdve['prevalence'].ts[pop].t = [2000]
-            D.tdve['prevalence'].ts[pop].vals = [data2[f'Estimated {sx.title()} Prisoner HCV Prevalence'].values[0]]
+            # D.tdve['prevalence'].ts[pop].vals = [data2[f'Estimated {sx.title()} Prisoner HCV Prevalence'].values[0]]
+            D.tdve['prevalence'].ts[pop].vals = [data2['HCV RNA prevalence (PWID)'].values[0]]
             D.tdve['chronic'].ts[pop].t = [2000]
             D.tdve['chronic'].ts[pop].vals = [D.tdve['prevalence'].ts[pop].vals[0] * D.tdve['alive'].ts[pop].vals[0]]
 
@@ -338,6 +358,13 @@ def generate_databook(country, savedir=None):
             D.tdve['prevalence'].ts[pop].vals = [data2['HCV RNA prevalence (PWID)'].values[0]]
             D.tdve['chronic'].ts[pop].t = [2000]
             D.tdve['chronic'].ts[pop].vals = [D.tdve['prevalence'].ts[pop].vals[0] * D.tdve['alive'].ts[pop].vals[0]]
+    
+    for pop in ['Prisoners_males', 'Prisoners_females']:  # Burden Estimates (prisoners) (if empty)
+        if len(D.tdve['prevalence'].ts[pop].vals) == 0:
+            D.tdve['prevalence'].ts[pop].t = [2000]
+            D.tdve['prevalence'].ts[pop].vals = [0]
+            D.tdve['chronic'].ts[pop].t = [2000]
+            D.tdve['chronic'].ts[pop].vals = [0]
 
 
     for par in ['chronic', 'prevalence']:
@@ -491,7 +518,7 @@ def generate_databook(country, savedir=None):
             
     ### Model Initialisation
     stages = ['f0', 'f1', 'f2', 'f3', 'f4', 'dc', 'hcc']
-    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_males','Prisoners_females']
+    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_PWID_males','Prisoners_PWID_females']
     for pop in D.pops:
         if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > hcv.atomica.model.model_settings['tolerance']:
             print('ERROR: Disease stage proportions do not add up to 1')

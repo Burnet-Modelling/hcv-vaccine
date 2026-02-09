@@ -19,8 +19,8 @@ import pathlib
 import sys
 dir = pathlib.Path(_get_sharepoint_folder())
 
-country = sys.argv[1]
-# country='CHE'
+# country = sys.argv[1]
+country='CHE'
 rand_seed=250711
 n_samples=100
 results_folder = dir/'results'
@@ -31,10 +31,10 @@ savedir_scens = results_folder / 'scenarios' / country
 savedir_scens.mkdir(parents=True, exist_ok=True)
 sens_folder = results_folder / 'sensitivity_analyses'
 sens_folder.mkdir(parents=True, exist_ok=True)
-#%%
+
 # Generate databook
 generate_databook(country)
-
+#%%
 # Run calibration
 ut.run_calibration(country, savedir=cal_folder)
 ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot

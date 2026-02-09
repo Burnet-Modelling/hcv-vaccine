@@ -25,9 +25,11 @@ default_pops = {
     "65+_females": {"label": "General Population 65+ females", "type": "human"},
     "Prisoners_males": {"label": "Prisoners (males)", "type": "human"},
     "Prisoners_females": {"label": "Prisoners (females)", "type": "human"},
+    "Prisoners_PWID_males": {"label": "Prisoners (males)", "type": "human"},
+    "Prisoners_PWID_females": {"label": "Prisoners (females)", "type": "human"},
 }
 
-general_populations = ["PWID", "0-9", "10-17", "18-64", "65+", "Prisoners"]
+general_populations = ["PWID", "0-9", "10-17", "18-64", "65+", "Prisoners", "Prisoners_PWID"]
 
 # Population calculations setup
 sub_pops = [
@@ -35,8 +37,8 @@ sub_pops = [
     "PWID",
 ]  # ,'Hospital','Indigenous'] #pops to be subtracted from gen pop size
 default_pops_inter = [
-    "Prisoners_males",
-    "Prisoners_females",
+    "Prisoners_PWID_males",
+    "Prisoners_PWID_females",
 ]  # default populations with idu self interactions
 
 # default transfers - really important for these all to be in the correct order (ie. age, idu, inc) because D.transfers is indexed by number rather than parameter
@@ -63,10 +65,10 @@ default_transfers = {
         ("18-64_females", "PWID_females"),
     ],
     "inc": [
-        ("PWID_males", "Prisoners_males"),
-        ("PWID_females", "Prisoners_females"),
-        ("Prisoners_males", "PWID_males"),
-        ("Prisoners_females", "PWID_females"),
+        ("PWID_males", "Prisoners_PWID_males"),
+        ("PWID_females", "Prisoners_PWID_females"),
+        ("Prisoners_PWID_males", "PWID_males"),
+        ("Prisoners_PWID_females", "PWID_females"),
         ("18-64_males", "Prisoners_males"),
         ("18-64_females", "Prisoners_females"),
         ("Prisoners_males", "18-64_males"),

@@ -391,10 +391,16 @@ def plot_outcomes2(P, result, file_name, start_year=2000, end_year=2050):
     plt.grid(False) 
     panel_plot(fig_demo[0], 21, new_fig, dimensions)
 
-    d = at.PlotData(result, pops=['Prisoners_females', 'Prisoners_males'], outputs=['alive'], project=P)
-    fig_demo = at.plot_series(d, axis='pops', data=plot_data, legend_mode = True)
+    d = at.PlotData(result, pops=[{'Prison_females':['Prisoners_females','Prisoners_PWID_females'], 
+                                  'Prison_males':['Prisoners_males','Prisoners_PWID_males']}], outputs=['alive'], project=P)
+    data_f = np.array(P.data.tdve['alive'].ts['Prisoners_females'].vals)+np.array(P.data.tdve['alive'].ts['Prisoners_PWID_females'].vals)
+    data_m = np.array(P.data.tdve['alive'].ts['Prisoners_males'].vals)+np.array(P.data.tdve['alive'].ts['Prisoners_PWID_males'].vals)
+    data_t = P.data.tdve['alive'].ts['Prisoners_males'].t
+    fig_demo = at.plot_series(d, axis='pops', legend_mode = True)
+    plt.scatter(data_t,data_f,c='b',marker='o')
+    plt.scatter(data_t,data_m,c='r',marker='o')
     plt.title('People in prison')
-    plt.legend(['females', '_', 'males'])
+    # plt.legend(['females', '_', 'males'])
     plt.autoscale()
     yl = plt.ylim()
     plt.ylim(bottom=0,top=yl[1])
