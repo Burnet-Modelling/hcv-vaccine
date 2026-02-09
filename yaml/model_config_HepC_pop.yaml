@@ -29,7 +29,30 @@ Calibration:
                 weight: 1.0
                 cal_start: 2000
                 cal_end: 2025
+    Match female PWID prisoners population sizes:
+        maxtime: 1000
+        adjustables:
+            (inc, Prisoners_PWID_females, PWID_females):
+                lower_bound: 0.5
+                upper_bound: 2.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, Prisoners_PWID_females):
+                cal_start: 2000
+                cal_end: 2025
                 
+    Match male PWID prisoners population sizes:
+        maxtime: 1000
+        adjustables:
+            (inc, Prisoners_PWID_males, PWID_males):
+                lower_bound: 0.5
+                upper_bound: 2.0
+                starting_y_factor: 1.0
+        measurables:
+            (alive, Prisoners_PWID_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025                
     Match female pwid population sizes:
         maxtime: 1000
         adjustables:
