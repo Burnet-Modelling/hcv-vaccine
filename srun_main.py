@@ -18,7 +18,7 @@ from hcv import utils_plotting as ut_plt
 from pathlib import Path
 import sys
 # dir = pathlib.Path(_get_sharepoint_folder())
-dir = Path(__file__).resolve().parent
+dir = ut.get_project_root()
 
 country = sys.argv[1]
 # country='CHE'
