@@ -713,12 +713,12 @@ def plot_calibration(country, cal_folder, savedir, cal_version=None):
         country, load_calibration=True, cal_folder=cal_folder, cal_version=cal_version
     )
     result_baseline = P.run_sim(result_name="Calibration")  # run results
-    plot_outcomes(P, result_baseline, iso_to_country[country])
+    # plot_outcomes(P, result_baseline, iso_to_country[country])
+    # plt.savefig(savedir / f"{country}.png")
+    # print(f"plot saved: {savedir}/{country}.png")
+    plot_outcomes2(P, result_baseline, iso_to_country[country])
     plt.savefig(savedir / f"{country}.png")
     print(f"plot saved: {savedir}/{country}.png")
-    plot_outcomes2(P, result_baseline, iso_to_country[country])
-    plt.savefig(savedir / f"{country}_2.png")
-    print(f"plot saved: {savedir}/{country}_2.png")
     plt.show()
     plt.close("all")
 

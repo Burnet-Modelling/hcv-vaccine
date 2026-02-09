@@ -119,7 +119,7 @@ def country_scope(file=None):
         list: A list of countries extracted from the specified Excel file.
     """
     if file is None:
-        df = pd.read_excel("/data/country_scope.xlsx")
+        df = pd.read_excel("data/country_scope.xlsx")
     else:
         df = pd.read_excel(file)
 

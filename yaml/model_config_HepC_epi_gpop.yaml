@@ -3,6 +3,7 @@
 sim_dt: 0.25
 
 Calibration:   
+    repeats: 2
     Match diagnoses:
         maxtime: 1000
         adjustables:

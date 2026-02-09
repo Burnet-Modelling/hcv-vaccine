@@ -2,7 +2,8 @@
 #Timestep for the model
 sim_dt: 0.25
 
-Calibration:     
+Calibration:   
+    repeats: 2  
     Match diagnoses:
         maxtime: 1000
         adjustables:
