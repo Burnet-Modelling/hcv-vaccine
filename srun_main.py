@@ -37,7 +37,7 @@ generate_databook(country)
 
 # Run calibration
 ut.run_calibration(country, savedir=cal_folder)
-ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib) # plot
+ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot
 
 # Run vaccine scenarios
 # ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
