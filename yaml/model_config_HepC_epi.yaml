@@ -17,55 +17,55 @@ Calibration:
                 cal_start: 2000
                 cal_end: 2026
                   
-    # Match female pwid prevalence:
-    #     maxtime: 1000
-    #     adjustables:
-    #         (infx_primary,PWID_females):
-    #             lower_bound: 0.01
-    #             upper_bound: 10.0
-    #             starting_y_factor: 5.0
-    #     measurables:
-    #         (prev, PWID_females):
-    #             weight: 1.0
-    #             cal_start: 2000
-    #             cal_end: 2025
+    Match female pwid prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,PWID_females):
+                lower_bound: 0.1
+                upper_bound: 10.0
+                starting_y_factor: 5.0
+        measurables:
+            (prev, PWID_females):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
     
-    # Match male pwid prevalence:
-    #     maxtime: 1000
-    #     adjustables:
-    #         (infx_primary,PWID_males):
-    #             lower_bound: 0.01
-    #             upper_bound: 10.0
-    #             starting_y_factor: 5.0
-    #     measurables:
-    #         (prev, PWID_males):
-    #             weight: 1.0
-    #             cal_start: 2000
-    #             cal_end: 2025
+    Match male pwid prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,PWID_males):
+                lower_bound: 0.1
+                upper_bound: 10.0
+                starting_y_factor: 5.0
+        measurables:
+            (prev, PWID_males):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
                 
-    # Match female prison prevalence:
-    #     maxtime: 1000
-    #     adjustables:
-    #         (infx_primary,Prisoners_females):
-    #             lower_bound: 0.01
-    #             upper_bound: 10.0
-    #     measurables:
-    #         (prev, Prisoners_females):
-    #             weight: 5.0
-    #             cal_start: 2000
-    #             cal_end: 2025
+    Match female prison prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,Prisoners_PWID_females):
+                lower_bound: 0.1
+                upper_bound: 10.0
+        measurables:
+            (prev, Prisoners_PWID_females):
+                weight: 5.0
+                cal_start: 2000
+                cal_end: 2025
                 
-    # Match male prison prevalence:
-    #     maxtime: 1000
-    #     adjustables:
-    #         (infx_primary,Prisoners_males):
-    #             lower_bound: 0.01
-    #             upper_bound: 10.0
-    #     measurables:
-    #         (prev, Prisoners_males):
-    #             weight: 5.0
-    #             cal_start: 2000
-    #             cal_end: 2025
+    Match male prison prevalence:
+        maxtime: 1000
+        adjustables:
+            (infx_primary,Prisoners_PWID_males):
+                lower_bound: 0.1
+                upper_bound: 10.0
+        measurables:
+            (prev, Prisoners_PWID_males):
+                weight: 5.0
+                cal_start: 2000
+                cal_end: 2025
             
     Match plhcv:
         maxtime: 1500
