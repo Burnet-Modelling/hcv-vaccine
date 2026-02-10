@@ -1015,6 +1015,8 @@ def calculate_pop_transfers(res):
         "65+_females",
         "Prisoners_males",
         "Prisoners_females",
+        "Prisoners_PWID_males",
+        "Prisoners_PWID_females",
     ]
     transfer_codes = ["idu_status_", "inc_", "age_"]
     transfer_flows_by_pop = {pop: None for pop in all_pops}
