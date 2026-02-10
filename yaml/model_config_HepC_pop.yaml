@@ -6,7 +6,7 @@ sim_dt: 0.25
 Calibration:
     repeats: 2
     Match female prisoners population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (inc, Prisoners_females, 18-64_females):
                 lower_bound: 0.5
@@ -18,7 +18,7 @@ Calibration:
                 cal_end: 2025
                 
     Match male prisoners population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (inc, Prisoners_males, 18-64_males):
                 lower_bound: 0.5
@@ -30,7 +30,7 @@ Calibration:
                 cal_start: 2000
                 cal_end: 2025
     Match female PWID prisoners population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (inc, Prisoners_PWID_females, PWID_females):
                 lower_bound: 0.5
@@ -42,7 +42,7 @@ Calibration:
                 cal_end: 2025
                 
     Match male PWID prisoners population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (inc, Prisoners_PWID_males, PWID_males):
                 lower_bound: 0.5
@@ -54,7 +54,7 @@ Calibration:
                 cal_start: 2000
                 cal_end: 2025                
     Match female pwid population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (idu_status, 18-64_females, PWID_females):
                 lower_bound: 0.5
@@ -67,7 +67,7 @@ Calibration:
                 cal_end: 2025
                 
     Match male pwid population sizes:
-        maxtime: 1000
+        maxtime: 100
         adjustables:
             (idu_status, 18-64_males, PWID_males):
                 lower_bound: 0.5
