@@ -20,8 +20,8 @@ import sys
 # dir = pathlib.Path(_get_sharepoint_folder())
 dir = ut.get_project_root()
 
-# country = sys.argv[1]
-country='CAF'
+country = sys.argv[1]
+# country='CAF'
 rand_seed=250711
 n_samples=100
 results_folder = dir/'results'
