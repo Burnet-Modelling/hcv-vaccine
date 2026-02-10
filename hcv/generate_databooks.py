@@ -575,7 +575,7 @@ def generate_databook(country, savedir=None):
             
     ### Model Initialisation
     stages = ['f0', 'f1', 'f2', 'f3', 'f4', 'dc', 'hcc']
-    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_PWID_males','Prisoners_PWID_females']
+    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_PWID_males','Prisoners_PWID_females','Prisoners_males','Prisoners_females']
     for pop in D.pops:
         if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > hcv.atomica.model.model_settings['tolerance']:
             print('ERROR: Disease stage proportions do not add up to 1')
@@ -632,6 +632,9 @@ def generate_databook(country, savedir=None):
             
     for pop_pwid, pop_gp in zip(['PWID_males','PWID_females'],['18-64_males','18-64_females']):
         D.tdve['death_all'].ts[pop_pwid].vals = D.tdve['death_all'].ts[pop_gp].vals
+        
+    for pop_prison,pop_pwid in zip(['Prisoners_PWID_males','Prisoners_PWID_females'],['PWID_males','PWID_females']):
+        D.tdve['death_all'].ts[pop_prison].vals = D.tdve['death_all'].ts[pop_pwid].vals
     
     ## Uncertainty
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Standard Deviations')
