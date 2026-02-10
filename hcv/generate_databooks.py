@@ -6,8 +6,65 @@ hcv.atomica.model.model_settings["tolerance"] = 2e-6
 import hcv
 import itertools
 import hcv.utils as ut
+from collections import OrderedDict
 
 rootdir = ut.get_project_root()
+
+default_pops = {
+    "PWID_males": {"label": "People Who Inject Drugs (males)", "type": "human"},
+    "PWID_females": {"label": "People Who Inject Drugs (females)", "type": "human"},
+    "0-9_males": {"label": "General Population 0-9 males", "type": "human"},
+    "0-9_females": {"label": "General Population 0-9 females", "type": "human"},
+    "10-17_males": {"label": "General Population 10-17 males", "type": "human"},
+    "10-17_females": {"label": "General Population 10-17 females", "type": "human"},
+    "18-64_males": {"label": "General Population 18-64 males", "type": "human"},
+    "18-64_females": {"label": "General Population 18-64 females", "type": "human"},
+    "65+_males": {"label": "General Population 65+ males", "type": "human"},
+    "65+_females": {"label": "General Population 65+ females", "type": "human"},
+    "Prisoners_males": {"label": "Prisoners (males)", "type": "human"},
+    "Prisoners_females": {"label": "Prisoners (females)", "type": "human"},
+    "Prisoners_PWID_males": {"label": "Prisoners (males)", "type": "human"},
+    "Prisoners_PWID_females": {"label": "Prisoners (females)", "type": "human"},
+}
+
+default_transfer_codes = OrderedDict()
+default_transfer_codes = {
+    "age": "Aging",
+    "idu_status": "Injecting Drug Use Relapse or Cessation",
+    "inc": "Incarceration",
+}
+default_transfers = OrderedDict()
+default_transfers = {
+    "age": [
+        ("18-64_males", "65+_males"),
+        ("18-64_females", "65+_females"),
+        ("10-17_males", "18-64_males"),
+        ("10-17_females", "18-64_females"),
+        ("0-9_males", "10-17_males"),
+        ("0-9_females", "10-17_females"),
+    ],
+    "idu_status": [
+        ("PWID_males", "18-64_males"),
+        ("18-64_males", "PWID_males"),
+        ("PWID_females", "18-64_females"),
+        ("18-64_females", "PWID_females"),
+    ],
+    "inc": [
+        ("PWID_males", "Prisoners_PWID_males"),
+        ("PWID_females", "Prisoners_PWID_females"),
+        ("Prisoners_PWID_males", "PWID_males"),
+        ("Prisoners_PWID_females", "PWID_females"),
+        ("18-64_males", "Prisoners_males"),
+        ("18-64_females", "Prisoners_females"),
+        ("Prisoners_males", "18-64_males"),
+        ("Prisoners_females", "18-64_females"),
+    ],
+}
+
+default_pops_inter = [
+    "Prisoners_PWID_males",
+    "Prisoners_PWID_females",
+]  # default populations with idu self interactions
 
 def generate_databook(country, savedir=None):
     """Generates a databook for a specified country based on demographic and health data.
@@ -31,7 +88,7 @@ def generate_databook(country, savedir=None):
     print(country)
     
     F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework.xlsx')
-    D = at.ProjectData.new(framework = F, tvec = np.arange(2000,2051), pops=hcv.default_pops, transfers=0)
+    D = at.ProjectData.new(framework = F, tvec = np.arange(2000,2051), pops=default_pops, transfers=0)
     
     who_regions = pd.read_excel(str(rootdir)+"/data/flat_datasheet.xlsx", sheet_name="Cost - YLL and productivity").iloc[:,np.r_[1,4]]
     region = who_regions[who_regions.ISO3==country].WHO_reg.values[0]
@@ -84,7 +141,7 @@ def generate_databook(country, savedir=None):
     # D.tdve['alive'].ts["Prisoners_males"].vals = np.array(pris_m_v)-pwid_males_pris_pop
         
     # Delete not-used interactions
-    interactions_idu = list(zip(hcv.default_pops_inter,hcv.default_pops_inter))
+    interactions_idu = list(zip(default_pops_inter,default_pops_inter))
     sexes = ['males', 'females']
     for sx1, sx2 in itertools.product(sexes, sexes):
         interactions_idu += [('PWID_' + sx1, 'PWID_' + sx2)]
@@ -102,9 +159,9 @@ def generate_databook(country, savedir=None):
     #     del D.interpops[1].ts[key]
         
     # Generate all transfers
-    for idx, transfer_name in enumerate(hcv.default_transfer_codes.keys()): #adds transfer categories based on hcv.default_transfer_codes
-        D.add_transfer(transfer_name,hcv.default_transfer_codes[transfer_name],pop_type='human')
-        for pair in hcv.default_transfers[transfer_name]: #switches to Y for chosen pops
+    for idx, transfer_name in enumerate(default_transfer_codes.keys()): #adds transfer categories based on hcv.default_transfer_codes
+        D.add_transfer(transfer_name,default_transfer_codes[transfer_name],pop_type='human')
+        for pair in default_transfers[transfer_name]: #switches to Y for chosen pops
             D.transfers[idx].ts.append((pair[0],pair[1]), at.TimeSeries())
 
     ### Default Transfer Values
