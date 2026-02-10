@@ -41,7 +41,7 @@ sens_folder.mkdir(parents=True, exist_ok=True)
 generate_databook(country)
 #%%
 # Run calibration
-ut.run_calibration(country, savedir=cal_folder)
+# ut.run_calibration(country, savedir=cal_folder)
 ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot
 
 # Run vaccine scenarios
