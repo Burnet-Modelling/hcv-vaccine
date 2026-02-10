@@ -20,8 +20,8 @@ import sys
 # dir = pathlib.Path(_get_sharepoint_folder())
 dir = ut.get_project_root()
 
-country = sys.argv[1]
-# country='CHE'
+# country = sys.argv[1]
+country='CAF'
 rand_seed=250711
 n_samples=100
 results_folder = dir/'results'
@@ -38,10 +38,10 @@ sens_folder = results_folder / 'sensitivity_analyses'
 sens_folder.mkdir(parents=True, exist_ok=True)
 
 # Generate databook
-# generate_databook(country)
+generate_databook(country)
 #%%
 # Run calibration
-# ut.run_calibration(country, savedir=cal_folder)
+ut.run_calibration(country, savedir=cal_folder)
 ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot
 
 # Run vaccine scenarios

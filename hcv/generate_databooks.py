@@ -539,12 +539,12 @@ def generate_databook(country, savedir=None):
     total_hcv = 0
     if (hr_prison_data.empty) or (hr_prison_data['Any HR in prisons?'].values[0] == False):
         pop_groups = [pop for pop in D.pops if 'Prisoners' not in pop]
-        D.tdve['prop_treat_pre2015_pwid'].ts['Prisoners_males'].assumption = 0
-        D.tdve['prop_treat_pre2015_pwid'].ts['Prisoners_females'].assumption = 0
-        D.tdve['prop_treat_post2015_pwid'].ts['Prisoners_males'].assumption = 0
-        D.tdve['prop_treat_post2015_pwid'].ts['Prisoners_females'].assumption = 0
+        pop_groups_prison = [pop for pop in D.pops if 'Prisoners' in pop]
+        for pop in pop_groups_prison:
+            D.tdve['prop_treat_pre2015_pwid'].ts[pop].assumption = 0
+            D.tdve['prop_treat_post2015_pwid'].ts[pop].assumption = 0
     else:
-        pop_groups = D.pops
+        pop_groups = D.pops.keys()
     for pop in pop_groups:
         total_hcv += D.tdve['total_hcv'].ts[pop].vals[0]
     prop_weighted = dict()
