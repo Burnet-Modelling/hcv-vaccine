@@ -626,72 +626,72 @@ def plot_outcomes2(P, result, file_name, start_year=2000, end_year=2050):
     plt.grid(False) 
     panel_plot(fig_demo[0], 19, new_fig, dimensions)
     
-    # cascade of the disease in end_year
-    d = at.PlotData(result, project=P, pops='total', outputs='total_hcv')
-    names = ['% undiagnosed', '% diagnosed but not treated', '% treated']
+    # # cascade of the disease in end_year
+    # d = at.PlotData(result, project=P, pops='total', outputs='total_hcv')
+    # names = ['% undiagnosed', '% diagnosed but not treated', '% treated']
     
-    # Plot cascade
-    pops_cc = [['PWID_females'],['PWID_males'],['Prisoners_females'],['Prisoners_males'],gpop_pops_females,gpop_pops_males]
-    pops_cc_names = ['PWID (females)','PWID (males)', 
-                    'Prison (females)','Prison (males)',
-                    'gPop (females)', 'gPop (males)']
-    for year, fig_pos in zip([2020,2030],[24,29]):
-        undiag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
-        diag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
-        treat_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
-        for pops, pops_name in zip(pops_cc,pops_cc_names):
-            undiag_pc_pop, diag_pc_pop, treat_pc_pop = ut.cascade_percents(result, pops, year)
-            undiag_pc[pops_name] = undiag_pc_pop
-            diag_pc[pops_name] = diag_pc_pop
-            treat_pc[pops_name] = treat_pc_pop
+    # # Plot cascade
+    # pops_cc = [['PWID_females'],['PWID_males'],['Prisoners_females'],['Prisoners_males'],gpop_pops_females,gpop_pops_males]
+    # pops_cc_names = ['PWID (females)','PWID (males)', 
+    #                 'Prison (females)','Prison (males)',
+    #                 'gPop (females)', 'gPop (males)']
+    # for year, fig_pos in zip([2020,2030],[24,29]):
+    #     undiag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     diag_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     treat_pc = dict(map(lambda key: (key, dict()), pops_cc_names))
+    #     for pops, pops_name in zip(pops_cc,pops_cc_names):
+    #         undiag_pc_pop, diag_pc_pop, treat_pc_pop = ut.cascade_percents(result, pops, year)
+    #         undiag_pc[pops_name] = undiag_pc_pop
+    #         diag_pc[pops_name] = diag_pc_pop
+    #         treat_pc[pops_name] = treat_pc_pop
             
-        df_cascade_pc = pd.DataFrame([undiag_pc, diag_pc, treat_pc])
-        df_cascade_pc = df_cascade_pc.T
-        df_cascade_pc.columns = ['% undiagnosed','% diagnosed but not treated','% treated']
+    #     df_cascade_pc = pd.DataFrame([undiag_pc, diag_pc, treat_pc])
+    #     df_cascade_pc = df_cascade_pc.T
+    #     df_cascade_pc.columns = ['% undiagnosed','% diagnosed but not treated','% treated']
         
-        fig = plt.figure(figsize = (20, 16))
-        fig.add_axes([0.75, 1, 0.75, 1]) 
-        fig.set_size_inches(20, 16)
+    #     fig = plt.figure(figsize = (20, 16))
+    #     fig.add_axes([0.75, 1, 0.75, 1]) 
+    #     fig.set_size_inches(20, 16)
       
-        bars = []
-        treat = []
-        undiag = []
-        diag = []
-        for pop in undiag_pc.keys():
-            bars.append(pop)
-        for res in bars:
-            tr = treat_pc[res]
-            treat.append(tr)
-            dx = diag_pc[res]
-            diag.append(dx)
-            udx = undiag_pc[res]
-            undiag.append(udx)
-        treat =  np.array(treat)
-        diag =  np.array(diag)   
-        undiag =  np.array(undiag) 
+    #     bars = []
+    #     treat = []
+    #     undiag = []
+    #     diag = []
+    #     for pop in undiag_pc.keys():
+    #         bars.append(pop)
+    #     for res in bars:
+    #         tr = treat_pc[res]
+    #         treat.append(tr)
+    #         dx = diag_pc[res]
+    #         diag.append(dx)
+    #         udx = undiag_pc[res]
+    #         undiag.append(udx)
+    #     treat =  np.array(treat)
+    #     diag =  np.array(diag)   
+    #     undiag =  np.array(undiag) 
         
-        # plot bars in stack manner
-        plt.bar(bars, undiag, color='r')
-        plt.bar(bars, diag, bottom=undiag, color='y')
-        plt.bar(bars, treat, bottom=undiag+diag, color='g')
-        plt.legend(names, bbox_to_anchor=(1,1), frameon=False)
-        plt.title(f'{year} care cascade')
-        if year == 2020:
-            plt.xticks(ticks=[],labels=[])
-        else:
-            plt.xticks(rotation=45, ha='right')
-        plt.grid(False) 
-        panel_plot(fig, fig_pos, new_fig, dimensions)
+    #     # plot bars in stack manner
+    #     plt.bar(bars, undiag, color='r')
+    #     plt.bar(bars, diag, bottom=undiag, color='y')
+    #     plt.bar(bars, treat, bottom=undiag+diag, color='g')
+    #     plt.legend(names, bbox_to_anchor=(1,1), frameon=False)
+    #     plt.title(f'{year} care cascade')
+    #     if year == 2020:
+    #         plt.xticks(ticks=[],labels=[])
+    #     else:
+    #         plt.xticks(rotation=45, ha='right')
+    #     plt.grid(False) 
+    #     panel_plot(fig, fig_pos, new_fig, dimensions)
     
 
 
-    df_plot = df_cascade_pc.drop('Prisoners')
-    ax = df_plot.plot.bar(stacked=True, color=['r','y','g'])
-    plt.xticks(rotation=45, ha='right')
-    plt.legend(df_cascade_pc.columns, bbox_to_anchor=(1,1), frameon=False)
-    ax.set_yticks([0,0.2,0.4,0.6,0.8,1])
-    ax.set_yticklabels(['0%','20%','40%','60%','80%','100%'])
-    panel_plot(fig_demo[0], 24, new_fig, dimensions)
+    # df_plot = df_cascade_pc.drop('Prisoners')
+    # ax = df_plot.plot.bar(stacked=True, color=['r','y','g'])
+    # plt.xticks(rotation=45, ha='right')
+    # plt.legend(df_cascade_pc.columns, bbox_to_anchor=(1,1), frameon=False)
+    # ax.set_yticks([0,0.2,0.4,0.6,0.8,1])
+    # ax.set_yticklabels(['0%','20%','40%','60%','80%','100%'])
+    # panel_plot(fig_demo[0], 24, new_fig, dimensions)
     
     plt.show()
 

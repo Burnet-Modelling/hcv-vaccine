@@ -25,8 +25,12 @@ country = sys.argv[1]
 rand_seed=250711
 n_samples=100
 results_folder = dir/'results'
-cal_folder = results_folder / 'calibration' / 'y-factors'
-savedir_calib = results_folder / 'calibration' / 'plots'
+results_folder.mkdir(parents=True, exist_ok=True)
+cal_folder_parent = results_folder / 'calibration'
+cal_folder_parent.mkdir(parents=True, exist_ok=True)
+cal_folder = cal_folder_parent / 'y-factors'
+cal_folder.mkdir(parents=True, exist_ok=True)
+savedir_calib = cal_folder_parent / 'plots'
 savedir_calib.mkdir(parents=True, exist_ok=True)
 savedir_scens = results_folder / 'scenarios' / country
 savedir_scens.mkdir(parents=True, exist_ok=True)
