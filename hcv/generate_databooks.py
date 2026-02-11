@@ -550,7 +550,7 @@ def generate_databook(country, savedir=None):
     prop_weighted = dict()
     for pop in pop_groups:
         if ('PWID' in pop) or ('Prisoners' in pop):
-            treat_weight = 2
+            treat_weight = 3
         else:
             treat_weight = 1
         prop_weighted[pop] = D.tdve['total_hcv'].ts[pop].vals[0]/total_hcv*treat_weight
