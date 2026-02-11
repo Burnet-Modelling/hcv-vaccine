@@ -80,28 +80,28 @@ Calibration:
         adjustables:
             (infx_gen,all):
                 lower_bound: 0.1
-                upper_bound: 1000.0
+                upper_bound: 10.0
                 starting_y_factor: 1.0
             (infx_primary,all):
                 lower_bound: 0.1
-                upper_bound: 1000.0
+                upper_bound: 10.0
                 starting_y_factor: 1.0
-            # (prop_treat_pre2015,all):
-            #     lower_bound: 0.5
-            #     upper_bound: 5.0
-            #     starting_y_factor: 1.0
-            # (prop_treat_post2015,all):
-            #     lower_bound: 0.5
-            #     upper_bound: 5.0
-            #     starting_y_factor: 1.0
-            # (prop_treat_pre2015_pwid,all):
-            #     lower_bound: 0.5
-            #     upper_bound: 5.0
-            #     starting_y_factor: 1.0
-            # (prop_treat_post2015_pwid,all):
-            #     lower_bound: 0.5
-            #     upper_bound: 5.0
-            #     starting_y_factor: 1.0
+            (prop_treat_pre2015,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_post2015,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_pre2015_pwid,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
+            (prop_treat_post2015_pwid,all):
+                lower_bound: 0.5
+                upper_bound: 5.0
+                starting_y_factor: 1.0
         measurables:
             (plhcv_total, Total):
                 weight: 1.0
