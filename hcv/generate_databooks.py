@@ -520,7 +520,7 @@ def generate_databook(country, savedir=None):
         D.tdve['prevalence'].ts[pop].vals.append(D.tdve['prevalence'].ts[pop].vals[0])
     
     # Note if sum of plhcv in key pop groups != total hcv, then distribute the rest of plhcv to the remaining 18+ pop groups
-    gpop = ['18-64_males','18-64_females','65+_males','65+_females']
+    gpop = ['18-64_males','18-64_females','65+_males','65+_females','Prisoners_males','Prisoners_females']
     gpop_size = sum([D.tdve['alive'].ts[pop].vals[0] for pop in gpop])
     plhcv_diff = D.tdve['plhcv_total'].ts['Total'].vals[0] - sum([D.tdve['chronic'].ts[pop].vals[0] for pop in D.pops])
     if plhcv_diff > 0:

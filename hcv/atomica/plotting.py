@@ -1706,10 +1706,10 @@ def plot_series(plotdata, plot_type="line", axis=None, data=None, legend_mode=No
                 figs.append(fig)
                 axes.append(ax)
 
-        for fig in figs:
-            fig.patch.set_alpha(0)
-        for ax in axes:
-            ax.patch.set_alpha(0)
+        # for fig in figs:
+        #     fig.patch.set_alpha(0)
+        # for ax in axes:
+        #     ax.patch.set_alpha(0)
 
         return figs[:n_figs], axes[:n_figs]
 
