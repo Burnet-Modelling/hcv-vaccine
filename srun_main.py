@@ -37,10 +37,10 @@ sens_folder = results_folder / 'sensitivity_analyses'
 sens_folder.mkdir(parents=True, exist_ok=True)
 
 # Generate databook
-generate_databook(country)
+# generate_databook(country)
 #%%
 # Run calibration
-ut.run_calibration(country, savedir=cal_folder)
+# ut.run_calibration(country, savedir=cal_folder)
 ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot
 
 # Run vaccine scenarios

@@ -560,6 +560,8 @@ def plot_outcomes2(P, result, file_name, start_year=2000, end_year=2050):
                                            {'Remainder population (females)': gpop_pops_females},
                                             {'People in prison (males)': ['Prisoners_males']},
                                             {'People in prison (females)': ['Prisoners_females']},
+                                            {'PWID in prison (males)': ['Prisoners_PWID_males']},
+                                            {'PWID in prison (females)': ['Prisoners_PWID_females']},
                                             {'People who inject drugs (males)': ['PWID_males']},
                                             {'People who inject drugs (females)': ['PWID_females']}
                                             ],
@@ -611,6 +613,8 @@ def plot_outcomes2(P, result, file_name, start_year=2000, end_year=2050):
                                  {'Remainder population (females)': gpop_pops_females},
                                  {'People in prison (males)': ['Prisoners_males']},
                                  {'People in prison (females)': ['Prisoners_females']},
+                                 {'PWID in prison (males)': ['Prisoners_PWID_males']},
+                                 {'PWID in prison (females)': ['Prisoners_PWID_females']},
                                  {'People who inject drugs (males)': ['PWID_males']},
                                  {'People who inject drugs (females)': ['PWID_females']},
                                  ],
