@@ -87,7 +87,7 @@ def generate_databook(country, savedir=None):
     """
     print(country)
     
-    F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework.xlsx')
+    F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework1.xlsx')
     D = at.ProjectData.new(framework = F, tvec = np.arange(2000,2051), pops=default_pops, transfers=0)
     
     who_regions = pd.read_excel(str(rootdir)+"/data/flat_datasheet.xlsx", sheet_name="Cost - YLL and productivity").iloc[:,np.r_[1,4]]
@@ -149,14 +149,14 @@ def generate_databook(country, savedir=None):
     for key in [keys for keys in D.interpops[0].ts.keys() if keys not in interactions_idu]: #list of keys excluding idu transfers
         del D.interpops[0].ts[key]
     
-    # gen_to = ['18-64_males','18-64_females','65+_males','65+_females']
-    # interactions_gen = []
-    # for pop_from in D.pops:
-    #     for pop_to in gen_to:
-    #         interactions_gen += [(pop_from,pop_to)]
+    gen_to = ['18-64_males','18-64_females','65+_males','65+_females']
+    interactions_gen = []
+    for pop_from in gen_to:
+        for pop_to in gen_to:
+            interactions_gen += [(pop_from,pop_to)]
             
-    # for key in [keys for keys in D.interpops[1].ts.keys() if keys not in interactions_gen]: #list of keys excluding idu transfers
-    #     del D.interpops[1].ts[key]
+    for key in [keys for keys in D.interpops[1].ts.keys() if keys not in interactions_gen]: #list of keys excluding idu transfers
+        del D.interpops[1].ts[key]
         
     # Generate all transfers
     for idx, transfer_name in enumerate(default_transfer_codes.keys()): #adds transfer categories based on hcv.default_transfer_codes
@@ -366,8 +366,9 @@ def generate_databook(country, savedir=None):
                         D.tdve[par].ts[pop].t = D.tdve[par].ts['PWID_males'].t
                         D.tdve[par].ts[pop].vals = D.tdve[par].ts['PWID_males'].vals
             elif par == 'infx_gen':
-                D.tdve[par].ts[pop].t = list(infx_gen_data.Year)
-                D.tdve[par].ts[pop].vals = list(infx_gen_data.infx_gen)
+                continue
+                # D.tdve['infx_gen1'].ts[pop].t = list(infx_gen_data.Year)
+                # D.tdve['infx_gen1'].ts[pop].vals = list(infx_gen_data.infx_gen)
             else:
                 D.tdve[par].ts[pop].assumption = value
     
@@ -383,20 +384,26 @@ def generate_databook(country, savedir=None):
     elif income_level == 'Low income':
         pcr_rate = 0.2
         
+    countries_high_prev = ["ARM","BDI","EGY","GAB","GEO","KAZ","KGZ","LVA","MNG","PAK","TJK","UKR"]
+        
     for par in ['test_pcr_f0f2_ab_ic_1', 'test_pcr_f3f4_ab_ic_1']:
         for pop in D.pops:
             D.tdve[par].ts[pop].assumption = pcr_rate
-
+            
+    pop_infx_gen = ['18-64_males','18-64_females','65+_males','65+_females']
     for pop in D.pops:
         if not D.tdve['infx_primary'].ts[pop].assumption:
             D.tdve['infx_primary'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
-        if not D.tdve['infx_gen'].ts[pop].assumption and not D.tdve['infx_gen'].ts[pop].vals:
-            if 'low' in income_level or 'middle' in income_level:
-                D.tdve['infx_gen'].ts[pop].assumption = 0.0001
-                # https://doi.org/10.1016/S2468-1253(19)30085-8 (Globally, if the increased risk for HCV transmission among people who inject drugs was removed, an estimated 43% (95% CrI 25–67) of incident HCV infections would be prevented from 2018 to 2030, varying regionally. This population attributable fraction was higher in high-income countries (79%, 95% CrI 57–97) than in countries of low and middle income (38%, 24–64))
-                # Global Hepatitis Report 2024 (IDU contributes to 43.6% of new infections globally)
+        if not D.tdve['infx_gen1'].ts[pop].assumption and not D.tdve['infx_gen1'].ts[pop].vals:
+            if pop in pop_infx_gen:
+                if (country in countries_high_prev) or ('Low' in income_level) or ('middle' in income_level):
+                    D.tdve['infx_gen1'].ts[pop].assumption = 0.1
+                    # https://doi.org/10.1016/S2468-1253(19)30085-8 (Globally, if the increased risk for HCV transmission among people who inject drugs was removed, an estimated 43% (95% CrI 25–67) of incident HCV infections would be prevented from 2018 to 2030, varying regionally. This population attributable fraction was higher in high-income countries (79%, 95% CrI 57–97) than in countries of low and middle income (38%, 24–64))
+                    # Global Hepatitis Report 2024 (IDU contributes to 43.6% of new infections globally)
+                else:
+                    D.tdve['infx_gen1'].ts[pop].assumption = 0 
             else:
-                D.tdve['infx_gen'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
+                D.tdve['infx_gen1'].ts[pop].assumption = 0
 
     ### Disease burden
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Disease Burden')
