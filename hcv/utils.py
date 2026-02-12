@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import os
 import pandas as pd
+from scipy.optimize import minimize
 from os.path import isfile, join
 from .parameters import iso_to_country
 import re
@@ -178,27 +179,29 @@ def run_calibration(country, savedir, yaml_folder=None):
     pop_yaml = yaml_folder / "model_config_HepC_pop.yaml"
 
     # YAML file for epi calibration
-    if country in [
-        "ARM",
-        "BDI",
-        "EGY",
-        "GAB",
-        "GEO",
-        "KAZ",
-        "KGZ",
-        "LVA",
-        "MNG",
-        "PAK",
-        "TJK",
-        "UKR",
-    ]:
-        epi_yaml = (
-            yaml_folder / "model_config_HepC_epi_gpop.yaml"
-        )  # Countries with gpop transmission
-    else:
-        epi_yaml = (
-            yaml_folder / "model_config_HepC_epi.yaml"
-        )  # countries with no gpop transmission
+    # if country in [
+    #     "ARM",
+    #     "BDI",
+    #     "EGY",
+    #     "GAB",
+    #     "GEO",
+    #     "KAZ",
+    #     "KGZ",
+    #     "LVA",
+    #     "MNG",
+    #     "PAK",
+    #     "TJK",
+    #     "UKR",
+    # ]:
+    #     epi_yaml = (
+    #         yaml_folder / "model_config_HepC_epi_gpop.yaml"
+    #     )  # Countries with gpop transmission
+    # else:
+    #     epi_yaml = (
+    #         yaml_folder / "model_config_HepC_epi.yaml"
+    #     )  # countries with no gpop transmission
+    
+    epi_yaml = (yaml_folder / "model_config_HepC_epi_2.yaml")
 
     print(f"\n\nCurrent country: {country} --------------------------------")
 
@@ -987,6 +990,57 @@ def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
 
 
 # %% Misc calculations
+
+def optimise_y_factor(country, cal_folder, cal, P, D, par_adj, pop_adj, par_meas, pop_meas, bounds): 
+    # Ensure lists 
+    if isinstance(par_adj, str): 
+        par_adj = [par_adj] 
+    if isinstance(pop_adj, str) or pop_adj == 'total': 
+        pop_adj = [pop_adj] 
+    if not isinstance(bounds[0], (tuple, list)): 
+        bounds = [bounds] * len(pop_adj) * len(par_adj) 
+    # Extract initial guess 
+    initial = [] 
+    for pop in pop_adj: 
+        for par in par_adj: 
+            if pop == 'total': 
+                initial.append(cal.pars[par].meta_y_factor) 
+            else: 
+                initial.append(cal.pars[par].y_factor[pop]) 
+    def obj_fn(params): 
+        autocal = cal.copy() 
+        i = 0 
+        for pop in pop_adj: 
+            for par in par_adj: 
+                if pop == 'total': 
+                    autocal.pars[par].meta_y_factor = params[i] 
+                else: 
+                    autocal.pars[par].y_factor[pop] = params[i] 
+                i += 1 
+        result = P.run_sim(parset=autocal) 
+        data = np.array(D.tdve[par_meas].ts[pop_meas].vals) 
+        tvec_data = D.tdve[par_meas].ts[pop_meas].t 
+        pop_model = 'total' if pop_meas == 'Total' else pop_meas 
+        tvec_model = at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].tvec 
+        idx_model = [list(tvec_model).index(t + 0.5) for t in tvec_data] 
+        model = np.array(at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].vals[idx_model]) 
+        error = np.sum((model - data) ** 2) 
+        return error 
+    
+    # Run minimisation 
+    result = minimize(obj_fn, x0=initial, bounds=bounds) 
+    # Apply results 
+    i = 0 
+    for pop in pop_adj: 
+        for par in par_adj: 
+            if pop == 'total': 
+                cal.pars[par].meta_y_factor = result.x[i] 
+            else: 
+                cal.pars[par].y_factor[pop] = result.x[i] 
+            print(f'Changed {par} for {pop} from {initial[i]} to {result.x[i]}.')  
+            i += 1 
+    cal.save_calibration(cal_folder / f'{country}_calibration_v2.xlsx') 
+    
 def calculate_pop_transfers(res):
     """Calculate population transfers based on model parameters.
     

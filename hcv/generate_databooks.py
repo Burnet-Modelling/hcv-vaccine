@@ -373,13 +373,14 @@ def generate_databook(country, savedir=None):
     
     country_income = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Info-Country Region Allocation')
     country_income = country_income[country_income.ISO3 == country]
-    if country_income['Income Group'].values[0] == 'High income':
+    income_level = country_income['Income Group'].values[0]
+    if income_level == 'High income':
         pcr_rate = 0.8
-    elif country_income['Income Group'].values[0] == 'Upper middle income':
+    elif income_level == 'Upper middle income':
         pcr_rate = 0.6
-    elif country_income['Income Group'].values[0] == 'Lower middle income':
+    elif income_level == 'Lower middle income':
         pcr_rate = 0.4
-    elif country_income['Income Group'].values[0] == 'Low income':
+    elif income_level == 'Low income':
         pcr_rate = 0.2
         
     for par in ['test_pcr_f0f2_ab_ic_1', 'test_pcr_f3f4_ab_ic_1']:
@@ -390,7 +391,12 @@ def generate_databook(country, savedir=None):
         if not D.tdve['infx_primary'].ts[pop].assumption:
             D.tdve['infx_primary'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
         if not D.tdve['infx_gen'].ts[pop].assumption and not D.tdve['infx_gen'].ts[pop].vals:
-            D.tdve['infx_gen'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
+            if 'low' in income_level or 'middle' in income_level:
+                D.tdve['infx_gen'].ts[pop].assumption = 0.0001
+                # https://doi.org/10.1016/S2468-1253(19)30085-8 (Globally, if the increased risk for HCV transmission among people who inject drugs was removed, an estimated 43% (95% CrI 25–67) of incident HCV infections would be prevented from 2018 to 2030, varying regionally. This population attributable fraction was higher in high-income countries (79%, 95% CrI 57–97) than in countries of low and middle income (38%, 24–64))
+                # Global Hepatitis Report 2024 (IDU contributes to 43.6% of new infections globally)
+            else:
+                D.tdve['infx_gen'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
 
     ### Disease burden
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Disease Burden')
