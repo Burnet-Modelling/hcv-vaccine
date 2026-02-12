@@ -37,7 +37,7 @@ sens_folder = results_folder / 'sensitivity_analyses'
 sens_folder.mkdir(parents=True, exist_ok=True)
 
 # Generate databook
-# generate_databook(country)
+generate_databook(country)
 #%%
 # Run calibration
 # ut.run_calibration(country, savedir=cal_folder)

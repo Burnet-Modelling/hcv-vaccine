@@ -343,6 +343,8 @@ def generate_databook(country, savedir=None):
     for idx, row in data.iterrows():
         par = row['Parameter Code Name']
         value = row['Default Value']
+        if 'test_pcr' in par:
+            continue
         # defined populations
         pop_groups = [populations.strip() for populations in row['Population(s)'].split(',')]
         if pop_groups == ['all']:
@@ -368,6 +370,21 @@ def generate_databook(country, savedir=None):
                 D.tdve[par].ts[pop].vals = list(infx_gen_data.infx_gen)
             else:
                 D.tdve[par].ts[pop].assumption = value
+    
+    country_income = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Info-Country Region Allocation')
+    country_income = country_income[country_income.ISO3 == country]
+    if country_income['Income Group'].values[0] == 'High income':
+        pcr_rate = 0.8
+    elif country_income['Income Group'].values[0] == 'Upper middle income':
+        pcr_rate = 0.6
+    elif country_income['Income Group'].values[0] == 'Lower middle income':
+        pcr_rate = 0.4
+    elif country_income['Income Group'].values[0] == 'Low income':
+        pcr_rate = 0.2
+        
+    for par in ['test_pcr_f0f2_ab_ic_1', 'test_pcr_f3f4_ab_ic_1']:
+        for pop in D.pops:
+            D.tdve[par].ts[pop].assumption = pcr_rate
 
     for pop in D.pops:
         if not D.tdve['infx_primary'].ts[pop].assumption:
