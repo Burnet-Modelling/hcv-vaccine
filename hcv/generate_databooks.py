@@ -345,6 +345,8 @@ def generate_databook(country, savedir=None):
         value = row['Default Value']
         if 'test_pcr' in par:
             continue
+        if ('test_ab' in par) and (value == 0):
+            value = 1e-2
         # defined populations
         pop_groups = [populations.strip() for populations in row['Population(s)'].split(',')]
         if pop_groups == ['all']:
