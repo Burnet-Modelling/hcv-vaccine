@@ -83,7 +83,7 @@ Calibration:
         maxtime: 1000
         adjustables:
             (infx_gen,all):
-                lower_bound: 0.001
+                lower_bound: 0
                 upper_bound: 100.0
                 starting_y_factor: 1.0
             (infx_primary,all):
