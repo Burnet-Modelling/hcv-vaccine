@@ -337,7 +337,7 @@ def generate_databook(country, savedir=None):
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Info-Calibrated Pars')
     hr_prison_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-Prisons Harm Reduction')
     hr_prison_data = hr_prison_data[hr_prison_data.ISO3 == country]
-    infx_gen_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-gPop Transmission')
+    infx_gen_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Other Transmission')
     infx_gen_data = infx_gen_data[infx_gen_data.ISO3 == country]
     
     for idx, row in data.iterrows():
@@ -398,7 +398,7 @@ def generate_databook(country, savedir=None):
             D.tdve['infx_primary'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
         if not D.tdve['infx_gen1'].ts[pop].assumption and not D.tdve['infx_gen1'].ts[pop].vals:
             if pop in pop_infx_gen:
-                if (country in countries_high_prev) or ('Low' in income_level) or ('middle' in income_level):
+                if (country in countries_high_prev) or (infx_gen_data.other_transmission.values[0]==True):
                     D.tdve['infx_gen1'].ts[pop].assumption = 0.1
                     # https://doi.org/10.1016/S2468-1253(19)30085-8 (Globally, if the increased risk for HCV transmission among people who inject drugs was removed, an estimated 43% (95% CrI 25–67) of incident HCV infections would be prevented from 2018 to 2030, varying regionally. This population attributable fraction was higher in high-income countries (79%, 95% CrI 57–97) than in countries of low and middle income (38%, 24–64))
                     # Global Hepatitis Report 2024 (IDU contributes to 43.6% of new infections globally)
