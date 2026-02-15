@@ -9,8 +9,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (inc, Prisoners_females, 18-64_females):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, Prisoners_females):
@@ -21,8 +21,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (inc, Prisoners_males, 18-64_males):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, Prisoners_males):
@@ -33,8 +33,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (inc, Prisoners_PWID_females, PWID_females):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, Prisoners_PWID_females):
@@ -45,8 +45,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (inc, Prisoners_PWID_males, PWID_males):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, Prisoners_PWID_males):
@@ -57,8 +57,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (idu_status, 18-64_females, PWID_females):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, PWID_females):
@@ -70,8 +70,8 @@ Calibration:
         maxtime: 100
         adjustables:
             (idu_status, 18-64_males, PWID_males):
-                lower_bound: 0.5
-                upper_bound: 2.0
+                lower_bound: 0.1
+                upper_bound: 10.0
                 starting_y_factor: 1.0
         measurables:
             (alive, PWID_males):

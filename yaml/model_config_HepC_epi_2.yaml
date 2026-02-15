@@ -108,9 +108,22 @@ Calibration:
             #     starting_y_factor: 1.0
         measurables:
             (prev, PWID_males):
-                weight: 3.0
+                weight: 2.0
                 cal_start: 2000
                 cal_end: 2025
+            (plhcv_total, Total):
+                weight: 1.0
+                cal_start: 2000
+                cal_end: 2025
+                
+    Match plhcv via pwid:
+        maxtime: 100
+        adjustables:
+            (infx_primary,all):
+                lower_bound: 0.1
+                upper_bound: 20.0
+                starting_y_factor: 1.0
+        measurables:
             (plhcv_total, Total):
                 weight: 1.0
                 cal_start: 2000
