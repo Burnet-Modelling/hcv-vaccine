@@ -991,7 +991,7 @@ def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
 
 # %% Misc calculations
 
-def optimise_y_factor(country, cal_folder, cal, P, D, par_adj, pop_adj, par_meas, pop_meas, bounds): 
+def optimise_y_factor(country, cal_folder, cal, P, D, par_adj, pop_adj, par_meas, pop_meas, bounds,transfer=False): 
     # Ensure lists 
     if isinstance(par_adj, str): 
         par_adj = [par_adj] 
@@ -999,46 +999,68 @@ def optimise_y_factor(country, cal_folder, cal, P, D, par_adj, pop_adj, par_meas
         pop_adj = [pop_adj] 
     if not isinstance(bounds[0], (tuple, list)): 
         bounds = [bounds] * len(pop_adj) * len(par_adj) 
+    if isinstance(par_meas, str): 
+        par_meas = [par_meas] 
+    if isinstance(pop_meas, str): 
+        pop_meas = [pop_meas] 
     # Extract initial guess 
     initial = [] 
-    for pop in pop_adj: 
-        for par in par_adj: 
-            if pop == 'total': 
+    for pop,par in zip(pop_adj,par_adj): 
+        if pop == 'total': 
+            if transfer:
+                initial.append(cal.transfers[transfer][par].meta_y_factor) 
+            else:
                 initial.append(cal.pars[par].meta_y_factor) 
-            else: 
+        else: 
+            if transfer:
+                initial.append(cal.transfers[transfer][par].y_factor[pop]) 
+            else:
                 initial.append(cal.pars[par].y_factor[pop]) 
     def obj_fn(params): 
         autocal = cal.copy() 
         i = 0 
-        for pop in pop_adj: 
-            for par in par_adj: 
-                if pop == 'total': 
+        for pop,par in zip(pop_adj,par_adj): 
+            if pop == 'total': 
+                if transfer:
+                    autocal.transfers[transfer][par].meta_y_factor = params[i] 
+                else:
                     autocal.pars[par].meta_y_factor = params[i] 
-                else: 
+            else: 
+                if transfer:
+                    autocal.transfers[transfer][par].y_factor[pop] = params[i] 
+                else:
                     autocal.pars[par].y_factor[pop] = params[i] 
                 i += 1 
         result = P.run_sim(parset=autocal) 
-        data = np.array(D.tdve[par_meas].ts[pop_meas].vals) 
-        tvec_data = D.tdve[par_meas].ts[pop_meas].t 
-        pop_model = 'total' if pop_meas == 'Total' else pop_meas 
-        tvec_model = at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].tvec 
-        idx_model = [list(tvec_model).index(t + 0.5) for t in tvec_data] 
-        model = np.array(at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].vals[idx_model]) 
-        error = np.sum((model - data) ** 2) 
+        data = []
+        model = []
+        for par_m,pop_m in zip(par_meas,pop_meas):
+            data += list(D.tdve[par_m].ts[pop_m].vals) 
+            tvec_data = D.tdve[par_m].ts[pop_m].t 
+            pop_model = 'total' if pop_m == 'Total' else pop_m 
+            tvec_model = at.PlotData(result, pops=pop_model, outputs=par_m, t_bins=1).series[0].tvec 
+            idx_model = [list(tvec_model).index(t + 0.5) for t in tvec_data] 
+            model += list(at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].vals[idx_model]) 
+        error = np.sum((np.array(model) - np.array(data)) ** 2) 
         return error 
     
     # Run minimisation 
     result = minimize(obj_fn, x0=initial, bounds=bounds) 
     # Apply results 
     i = 0 
-    for pop in pop_adj: 
-        for par in par_adj: 
-            if pop == 'total': 
+    for pop,par in zip(pop_adj,par_adj): 
+        if pop == 'total': 
+            if transfer:
+                cal.transfers[transfer][par].meta_y_factor = result.x[i] 
+            else:
                 cal.pars[par].meta_y_factor = result.x[i] 
-            else: 
+        else: 
+            if transfer:
+                cal.transfers[transfer][par].y_factor[pop] = result.x[i] 
+            else:
                 cal.pars[par].y_factor[pop] = result.x[i] 
-            print(f'Changed {par} for {pop} from {initial[i]} to {result.x[i]}.')  
-            i += 1 
+        print(f'Changed {par} for {pop} from {initial[i]} to {result.x[i]}.')  
+        i += 1 
     cal.save_calibration(cal_folder / f'{country}_calibration_v2.xlsx') 
     
 def calculate_pop_transfers(res):
