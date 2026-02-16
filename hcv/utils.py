@@ -171,6 +171,7 @@ def run_calibration(country, savedir, yaml_folder=None):
     """
     P = project(country, load_calibration=False)
     cal = P.make_parset()
+    cal.load_calibration(savedir/f'{country}_calibration_v2.xlsx')   
 
     if yaml_folder is None:
         yaml_folder = rootdir / "yaml"
@@ -206,13 +207,13 @@ def run_calibration(country, savedir, yaml_folder=None):
     print(f"\n\nCurrent country: {country} --------------------------------")
 
     # calibrate pop transfers first
-    cal = P.calibrate(
-        cal,
-        yaml=pop_yaml,
-        savedir=savedir / country,
-        save_intermediate=False,
-        log_output=True,
-    )
+    # cal = P.calibrate(
+    #     cal,
+    #     yaml=pop_yaml,
+    #     savedir=savedir / country,
+    #     save_intermediate=False,
+    #     log_output=True,
+    # )
 
     # calibrate epi second
     cal = P.calibrate(

@@ -134,7 +134,7 @@ Calibration:
         adjustables:
             (mult_death, all):
                 lower_bound: 0.1
-                upper_bound: 10.0
+                upper_bound: 100.0
                 starting_y_factor: 1.0
         measurables:
             (deaths_hcv_total, Total):
