@@ -66,14 +66,13 @@ pop_meas = ['PWID_males']
 bounds = [(0, None)]
 
 ut.optimise_y_factor(country, cal_folder, parset, P, D, par_adj, pop_adj, par_meas, pop_meas, bounds,transfer='idu_status') 
-P = ut.project(country, load_calibration=True, cal_folder=cal_folder, load_programs=False)
 #%%
 # Generate databook
 # generate_databook(country)
 #%%
 # Run calibration
 # ut.run_calibration(country, savedir=cal_folder)
-ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib, cal_version="v1") # plot
+ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib) # plot
 
 # Run vaccine scenarios
 # ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
