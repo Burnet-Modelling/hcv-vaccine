@@ -1,0 +1,6 @@
+numpy
+sciris
+pandas
+scipy
+pathlib
+openpyxl
