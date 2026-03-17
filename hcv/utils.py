@@ -1285,7 +1285,7 @@ def bcr_correlation():
 
     # Load BCR values (scenarios x countries)
     bcr_country = pd.read_csv(
-        str(rootdir) + "results/scenarios/bcr_map.csv", index_col=0
+        str(rootdir) + "/results/scenarios/bcr_map.csv", index_col=0
     )
     scenarios = list(bcr_country.columns)
     countries = list(bcr_country.index)
@@ -1373,7 +1373,7 @@ def bcr_correlation():
     print_df = pd.DataFrame(print_rows, index=predictors, columns=scenarios)
 
     # Write to Excel
-    out_path = str(rootdir) + "results/scenarios/bcr_correlations.xlsx"
+    out_path = str(rootdir) + "/results/scenarios/bcr_correlations.xlsx"
     print_df.to_excel(out_path, index=True)
 
     print(f"Correlation results saved to:{out_path}")
@@ -1483,7 +1483,7 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
     for scen in scen_name:
         data = sc.load(
             str(rootdir)
-            + f"results/scenarios/central/{country}/{scen}_central_extracted.pkl"
+            + f"/results/scenarios/central/{country}/{scen}_central_extracted.pkl"
         )
         spont_clear[scen] = pd.DataFrame(columns=["year", "spontaneous_clearance"])
         spont_clear[scen].year = np.arange(2000.5, 2051.5, 1)
@@ -2529,8 +2529,8 @@ def econ_analysis(scens_folder, n_samples):
         "Vaccine 20USD Cost",
     ]
     outcomes = outcomes_epi + outcomes_econ
-    epi_agg = sc.load(str(rootdir) + "results/scenarios/epi_agg.pkl")
-    econ_agg = sc.load(str(rootdir) + "results/scenarios/econ_agg.pkl")
+    epi_agg = sc.load(str(rootdir) + "/results/scenarios/epi_agg.pkl")
+    econ_agg = sc.load(str(rootdir) + "/results/scenarios/econ_agg.pkl")
 
     for reg in regions:
         agg_reg_table[reg] = pd.DataFrame(columns=["scenarios"] + outcomes)
