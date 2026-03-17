@@ -1156,7 +1156,7 @@ def plot_outcomes_timeseries(scens_folder, regions=["global"], scenarios="all"):
     regions = list(plot_data.keys())
     epi_outcomes = list(plot_data[list(plot_data.keys())[0]])
     epi_outcomes = epi_outcomes[:-1]
-    data_progbook = str(rootdir) + "data/progbook_inputs.xlsx"
+    data_progbook = str(rootdir) + "/data/progbook_inputs.xlsx"
     df_scenarios = pd.read_excel(pd.ExcelFile(data_progbook), sheet_name="scenarios")
     df = df_scenarios[df_scenarios.counterfactual.str.len() > 0]
     scenario_description = dict(zip(df["scenario_name"], df["description"]))
@@ -1323,20 +1323,20 @@ def plot_outcomes_journal(scens_folder):
             #     ax.set_ylabel("Number of cases", fontsize=14, fontweight='bold')
             #     # Row titles on the far left
                 ax.text(-0.2, 1.05, row_titles[row_idx], transform=ax.transAxes, 
-                        fontsize=18, fontweight='bold', va='bottom')
+                        fontsize=22, fontweight='bold', va='bottom')
 
             # if row_idx == 0:
             # ax.set_title(par, fontsize=18, pad=25, fontweight='bold')
-            ax.set_ylabel(par, fontsize=16)
+            ax.set_ylabel(par, fontsize=20)
             # if row_idx == 2:
-            ax.set_xlabel("Year", fontsize=16)
+            ax.set_xlabel("Year", fontsize=20)
 
             ax.set_xlim(2020, 2050)
             if par in ["HCV incidence", "Vaccines administered"]:
                 ax.set_ylim(bottom=0)
             
             ax.yaxis.set_major_formatter(dynamic_unit_formatter(ax))
-            ax.tick_params(axis="both", labelsize=12)
+            ax.tick_params(axis="both", labelsize=20)
             ax.grid(True, linestyle=":", alpha=0.6)
             
             for spine in ax.spines.values():
@@ -1356,9 +1356,9 @@ def plot_outcomes_journal(scens_folder):
         final_labels,
         loc="lower center", 
         ncol=4, 
-        fontsize=14, 
+        fontsize=20, 
         frameon=True,
-        bbox_to_anchor=(0.5, 0.02)
+        bbox_to_anchor=(0.5, -0.015)
     )
 
     # Adjust layout to make room for bottom legend and row titles

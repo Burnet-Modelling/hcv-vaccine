@@ -634,7 +634,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -662,7 +662,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -1442,11 +1442,14 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
             agg_data[scen]["HCV prevalence"].iloc[:, i + 1] = data["total_hcv", "Total"]
             # Key Populations
             agg_data[scen]["PWID prevalence"].iloc[:, i + 1] = (
-                data["total_hcv", "Prisoners_males"]
-                + data["total_hcv", "Prisoners_females"]
+                data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                
             )
             agg_data[scen]["Prisoner prevalence"].iloc[:, i + 1] = (
-                data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                data["total_hcv", "Prisoners_males"]
+                + data["total_hcv", "Prisoners_females"]
+                + data["total_hcv", "Prisoners_PWID_males"]
+                + data["total_hcv", "Prisoners_PWID_females"]
             )
 
     # Diagnostic Testing, Positive Tests, Treatment and Vaccination Coverage (most can be used for costs)
@@ -1505,6 +1508,8 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
             util_data[scen]["Prisoner Ab Tests"].iloc[:, i + 1] = (
                 data["ab_tests_m", "Prisoners_males"]
                 + data["ab_tests_m", "Prisoners_females"]
+                + data["ab_tests_m", "Prisoners_PWID_males"]
+                + data["ab_tests_m", "Prisoners_PWID_females"]
             )
             util_data[scen]["Total Ab Tests"].iloc[:, i + 1] = data[
                 "ab_tests_m", "Total"
@@ -3071,7 +3076,7 @@ def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females", "Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3099,7 +3104,7 @@ def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3359,7 +3364,7 @@ def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3387,7 +3392,7 @@ def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3643,7 +3648,7 @@ def run_coverage_analyses(country, cal_folder, sens_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3671,7 +3676,7 @@ def run_coverage_analyses(country, cal_folder, sens_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3882,11 +3887,13 @@ def econ_eval_central(country, sens_folder):
                 ]
                 # Key Populations
                 agg_data[scen]["PWID prevalence"].iloc[:, i + 1] = (
-                    data["total_hcv", "Prisoners_males"]
-                    + data["total_hcv", "Prisoners_females"]
+                    data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
                 )
                 agg_data[scen]["Prisoner prevalence"].iloc[:, i + 1] = (
-                    data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                    data["total_hcv", "Prisoners_males"]
+                    + data["total_hcv", "Prisoners_females"]
+                    + data["total_hcv", "Prisoners_PWID_males"]
+                    + data["total_hcv", "Prisoners_PWID_females"]
                 )
                 spont_clear[scen]["spontaneous_clearance"] = data[
                     "spontaneous_clearance", "Total"
@@ -3940,6 +3947,8 @@ def econ_eval_central(country, sens_folder):
                 util_data[scen]["Prisoner Ab Tests"].iloc[:, i + 1] = (
                     data["ab_tests_m", "Prisoners_males"]
                     + data["ab_tests_m", "Prisoners_females"]
+                    + data["ab_tests_m", "Prisoners_PWID_males"]
+                    + data["ab_tests_m", "Prisoners_PWID_females"]
                 )
                 util_data[scen]["Total Ab Tests"].iloc[:, i + 1] = data[
                     "ab_tests_m", "Total"
