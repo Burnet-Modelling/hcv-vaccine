@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: hcv-vaccine
+Version: 1.0
+Summary: A simulation model for an HCV vaccine
+Home-page: https://github.com/Burnet-Modelling/hcv-vaccine
+Requires-Python: ~=3.11
+Requires-Dist: numpy
+Requires-Dist: sciris
+Requires-Dist: pandas
+Requires-Dist: scipy
+Requires-Dist: pathlib
+Requires-Dist: openpyxl
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

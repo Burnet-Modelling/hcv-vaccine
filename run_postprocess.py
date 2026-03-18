@@ -11,7 +11,7 @@ from hcv import utils as ut
 from hcv import utils_plotting as ut_plt
 
 dir = ut.get_project_root()
-#%%
+
 # Simulation parameters
 n_samples = 100
 results_folder = dir / "results"

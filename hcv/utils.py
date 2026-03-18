@@ -1,15 +1,16 @@
 import numpy as np
-from hcv import atomica as at
+import hcv.atomica as at
 import sciris as sc
 import pathlib
 import shutil
 import os
 import pandas as pd
+from scipy.optimize import minimize
 from os.path import isfile, join
 from .parameters import iso_to_country
 import re
 import math
-from .atomica.plotting import Series
+from hcv.atomica.plotting import Series
 from scipy.stats import pearsonr
 
 #%% Root directory
@@ -71,7 +72,7 @@ def project(
     """
 
     # Load project framework
-    fw_path = rootdir / "framework" / "hcv_vaccine_framework.xlsx"
+    fw_path = rootdir / "framework" / "hcv_vaccine_framework1.xlsx"
     F = at.ProjectFramework(fw_path)
     db_dir = rootdir / "databooks"
 
@@ -119,7 +120,7 @@ def country_scope(file=None):
         list: A list of countries extracted from the specified Excel file.
     """
     if file is None:
-        df = pd.read_excel("/data/country_scope.xlsx")
+        df = pd.read_excel("data/country_scope.xlsx")
     else:
         df = pd.read_excel(file)
 
@@ -142,7 +143,7 @@ def return_fw_db(country):
         FileNotFoundError: If the framework or databook files cannot be found.
     """
     framework = at.ProjectFramework(
-        rootdir / "framework" / "hcv_vaccine_framework.xlsx"
+        rootdir / "framework" / "hcv_vaccine_framework1.xlsx"
     )
     db_path = rootdir / "databooks"
     db_files = [f for f in os.listdir(db_path) if isfile(join(db_path, f))]
@@ -170,6 +171,7 @@ def run_calibration(country, savedir, yaml_folder=None):
     """
     P = project(country, load_calibration=False)
     cal = P.make_parset()
+    cal.load_calibration(savedir/f'{country}_calibration_v2.xlsx')   
 
     if yaml_folder is None:
         yaml_folder = rootdir / "yaml"
@@ -178,38 +180,40 @@ def run_calibration(country, savedir, yaml_folder=None):
     pop_yaml = yaml_folder / "model_config_HepC_pop.yaml"
 
     # YAML file for epi calibration
-    if country in [
-        "ARM",
-        "BDI",
-        "EGY",
-        "GAB",
-        "GEO",
-        "KAZ",
-        "KGZ",
-        "LVA",
-        "MNG",
-        "PAK",
-        "TJK",
-        "UKR",
-    ]:
-        epi_yaml = (
-            yaml_folder / "model_config_HepC_epi_gpop.yaml"
-        )  # Countries with gpop transmission
-    else:
-        epi_yaml = (
-            yaml_folder / "model_config_HepC_epi.yaml"
-        )  # countries with no gpop transmission
+    # if country in [
+    #     "ARM",
+    #     "BDI",
+    #     "EGY",
+    #     "GAB",
+    #     "GEO",
+    #     "KAZ",
+    #     "KGZ",
+    #     "LVA",
+    #     "MNG",
+    #     "PAK",
+    #     "TJK",
+    #     "UKR",
+    # ]:
+    #     epi_yaml = (
+    #         yaml_folder / "model_config_HepC_epi_gpop.yaml"
+    #     )  # Countries with gpop transmission
+    # else:
+    #     epi_yaml = (
+    #         yaml_folder / "model_config_HepC_epi.yaml"
+    #     )  # countries with no gpop transmission
+    
+    epi_yaml = (yaml_folder / "model_config_HepC_epi_2.yaml")
 
     print(f"\n\nCurrent country: {country} --------------------------------")
 
     # calibrate pop transfers first
-    cal = P.calibrate(
-        cal,
-        yaml=pop_yaml,
-        savedir=savedir / country,
-        save_intermediate=False,
-        log_output=True,
-    )
+    # cal = P.calibrate(
+    #     cal,
+    #     yaml=pop_yaml,
+    #     savedir=savedir / country,
+    #     save_intermediate=False,
+    #     log_output=True,
+    # )
 
     # calibrate epi second
     cal = P.calibrate(
@@ -630,7 +634,10 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males",
+                           "Prisoners_females",
+                           "Prisoners_PWID_males",
+                           "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -658,7 +665,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -987,6 +994,79 @@ def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
 
 
 # %% Misc calculations
+
+def optimise_y_factor(country, cal_folder, cal, P, D, par_adj, pop_adj, par_meas, pop_meas, bounds,transfer=False): 
+    # Ensure lists 
+    if isinstance(par_adj, str): 
+        par_adj = [par_adj] 
+    if isinstance(pop_adj, str) or pop_adj == 'total': 
+        pop_adj = [pop_adj] 
+    if not isinstance(bounds[0], (tuple, list)): 
+        bounds = [bounds] * len(pop_adj) * len(par_adj) 
+    if isinstance(par_meas, str): 
+        par_meas = [par_meas] 
+    if isinstance(pop_meas, str): 
+        pop_meas = [pop_meas] 
+    # Extract initial guess 
+    initial = [] 
+    for pop,par in zip(pop_adj,par_adj): 
+        if pop == 'total': 
+            if transfer:
+                initial.append(cal.transfers[transfer][par].meta_y_factor) 
+            else:
+                initial.append(cal.pars[par].meta_y_factor) 
+        else: 
+            if transfer:
+                initial.append(cal.transfers[transfer][par].y_factor[pop]) 
+            else:
+                initial.append(cal.pars[par].y_factor[pop]) 
+    def obj_fn(params): 
+        autocal = cal.copy() 
+        i = 0 
+        for pop,par in zip(pop_adj,par_adj): 
+            if pop == 'total': 
+                if transfer:
+                    autocal.transfers[transfer][par].meta_y_factor = params[i] 
+                else:
+                    autocal.pars[par].meta_y_factor = params[i] 
+            else: 
+                if transfer:
+                    autocal.transfers[transfer][par].y_factor[pop] = params[i] 
+                else:
+                    autocal.pars[par].y_factor[pop] = params[i] 
+                i += 1 
+        result = P.run_sim(parset=autocal) 
+        data = []
+        model = []
+        for par_m,pop_m in zip(par_meas,pop_meas):
+            data += list(D.tdve[par_m].ts[pop_m].vals) 
+            tvec_data = D.tdve[par_m].ts[pop_m].t 
+            pop_model = 'total' if pop_m == 'Total' else pop_m 
+            tvec_model = at.PlotData(result, pops=pop_model, outputs=par_m, t_bins=1).series[0].tvec 
+            idx_model = [list(tvec_model).index(t + 0.5) for t in tvec_data] 
+            model += list(at.PlotData(result, pops=pop_model, outputs=par_meas, t_bins=1).series[0].vals[idx_model]) 
+        error = np.sum((np.array(model) - np.array(data)) ** 2) 
+        return error 
+    
+    # Run minimisation 
+    result = minimize(obj_fn, x0=initial, bounds=bounds) 
+    # Apply results 
+    i = 0 
+    for pop,par in zip(pop_adj,par_adj): 
+        if pop == 'total': 
+            if transfer:
+                cal.transfers[transfer][par].meta_y_factor = result.x[i] 
+            else:
+                cal.pars[par].meta_y_factor = result.x[i] 
+        else: 
+            if transfer:
+                cal.transfers[transfer][par].y_factor[pop] = result.x[i] 
+            else:
+                cal.pars[par].y_factor[pop] = result.x[i] 
+        print(f'Changed {par} for {pop} from {initial[i]} to {result.x[i]}.')  
+        i += 1 
+    cal.save_calibration(cal_folder / f'{country}_calibration_v2.xlsx') 
+    
 def calculate_pop_transfers(res):
     """Calculate population transfers based on model parameters.
     
@@ -1015,6 +1095,8 @@ def calculate_pop_transfers(res):
         "65+_females",
         "Prisoners_males",
         "Prisoners_females",
+        "Prisoners_PWID_males",
+        "Prisoners_PWID_females",
     ]
     transfer_codes = ["idu_status_", "inc_", "age_"]
     transfer_flows_by_pop = {pop: None for pop in all_pops}
@@ -1206,7 +1288,7 @@ def bcr_correlation():
 
     # Load BCR values (scenarios x countries)
     bcr_country = pd.read_csv(
-        str(rootdir) + "results/scenarios/bcr_map.csv", index_col=0
+        str(rootdir) + "/results/scenarios/bcr_map.csv", index_col=0
     )
     scenarios = list(bcr_country.columns)
     countries = list(bcr_country.index)
@@ -1294,7 +1376,7 @@ def bcr_correlation():
     print_df = pd.DataFrame(print_rows, index=predictors, columns=scenarios)
 
     # Write to Excel
-    out_path = str(rootdir) + "results/scenarios/bcr_correlations.xlsx"
+    out_path = str(rootdir) + "/results/scenarios/bcr_correlations.xlsx"
     print_df.to_excel(out_path, index=True)
 
     print(f"Correlation results saved to:{out_path}")
@@ -1363,11 +1445,14 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
             agg_data[scen]["HCV prevalence"].iloc[:, i + 1] = data["total_hcv", "Total"]
             # Key Populations
             agg_data[scen]["PWID prevalence"].iloc[:, i + 1] = (
-                data["total_hcv", "Prisoners_males"]
-                + data["total_hcv", "Prisoners_females"]
+                data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                
             )
             agg_data[scen]["Prisoner prevalence"].iloc[:, i + 1] = (
-                data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                data["total_hcv", "Prisoners_males"]
+                + data["total_hcv", "Prisoners_females"]
+                + data["total_hcv", "Prisoners_PWID_males"]
+                + data["total_hcv", "Prisoners_PWID_females"]
             )
 
     # Diagnostic Testing, Positive Tests, Treatment and Vaccination Coverage (most can be used for costs)
@@ -1404,7 +1489,7 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
     for scen in scen_name:
         data = sc.load(
             str(rootdir)
-            + f"results/scenarios/central/{country}/{scen}_central_extracted.pkl"
+            + f"/results/scenarios/central/{country}/{scen}_central_extracted.pkl"
         )
         spont_clear[scen] = pd.DataFrame(columns=["year", "spontaneous_clearance"])
         spont_clear[scen].year = np.arange(2000.5, 2051.5, 1)
@@ -1426,6 +1511,8 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples):
             util_data[scen]["Prisoner Ab Tests"].iloc[:, i + 1] = (
                 data["ab_tests_m", "Prisoners_males"]
                 + data["ab_tests_m", "Prisoners_females"]
+                + data["ab_tests_m", "Prisoners_PWID_males"]
+                + data["ab_tests_m", "Prisoners_PWID_females"]
             )
             util_data[scen]["Total Ab Tests"].iloc[:, i + 1] = data[
                 "ab_tests_m", "Total"
@@ -2450,8 +2537,8 @@ def econ_analysis(scens_folder, n_samples):
         "Vaccine 20USD Cost",
     ]
     outcomes = outcomes_epi + outcomes_econ
-    epi_agg = sc.load(str(rootdir) + "results/scenarios/epi_agg.pkl")
-    econ_agg = sc.load(str(rootdir) + "results/scenarios/econ_agg.pkl")
+    epi_agg = sc.load(str(rootdir) + "/results/scenarios/epi_agg.pkl")
+    econ_agg = sc.load(str(rootdir) + "/results/scenarios/econ_agg.pkl")
 
     for reg in regions:
         agg_reg_table[reg] = pd.DataFrame(columns=["scenarios"] + outcomes)
@@ -2992,7 +3079,7 @@ def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females", "Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3020,7 +3107,7 @@ def run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3280,7 +3367,7 @@ def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3308,7 +3395,7 @@ def run_genotype_analyses(country, cal_folder, sens_folder, results_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3564,7 +3651,7 @@ def run_coverage_analyses(country, cal_folder, sens_folder):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
@@ -3592,7 +3679,7 @@ def run_coverage_analyses(country, cal_folder, sens_folder):
             {"teens": ["10-17_males", "10-17_females"]},
             {"adults": ["18-64_males", "18-64_females", "65+_males", "65+_females"]},
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females"]},
+            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
         ]
         par = "vaccine_uptake:flow"
         extra = at.PlotData(
@@ -3803,11 +3890,13 @@ def econ_eval_central(country, sens_folder):
                 ]
                 # Key Populations
                 agg_data[scen]["PWID prevalence"].iloc[:, i + 1] = (
-                    data["total_hcv", "Prisoners_males"]
-                    + data["total_hcv", "Prisoners_females"]
+                    data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
                 )
                 agg_data[scen]["Prisoner prevalence"].iloc[:, i + 1] = (
-                    data["total_hcv", "PWID_males"] + data["total_hcv", "PWID_females"]
+                    data["total_hcv", "Prisoners_males"]
+                    + data["total_hcv", "Prisoners_females"]
+                    + data["total_hcv", "Prisoners_PWID_males"]
+                    + data["total_hcv", "Prisoners_PWID_females"]
                 )
                 spont_clear[scen]["spontaneous_clearance"] = data[
                     "spontaneous_clearance", "Total"
@@ -3861,6 +3950,8 @@ def econ_eval_central(country, sens_folder):
                 util_data[scen]["Prisoner Ab Tests"].iloc[:, i + 1] = (
                     data["ab_tests_m", "Prisoners_males"]
                     + data["ab_tests_m", "Prisoners_females"]
+                    + data["ab_tests_m", "Prisoners_PWID_males"]
+                    + data["ab_tests_m", "Prisoners_PWID_females"]
                 )
                 util_data[scen]["Total Ab Tests"].iloc[:, i + 1] = data[
                     "ab_tests_m", "Total"

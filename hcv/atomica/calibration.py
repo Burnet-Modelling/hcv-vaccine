@@ -12,7 +12,7 @@ from .model import BadInitialization
 from .system import logger
 from .parameters import ParameterSet
 import logging
-import hcv.atomica
+import hcv.atomica as atomica
 
 __all__ = ["calibrate"]
 

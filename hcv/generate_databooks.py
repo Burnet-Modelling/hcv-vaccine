@@ -6,8 +6,65 @@ hcv.atomica.model.model_settings["tolerance"] = 2e-6
 import hcv
 import itertools
 import hcv.utils as ut
+from collections import OrderedDict
 
 rootdir = ut.get_project_root()
+
+default_pops = {
+    "PWID_males": {"label": "People Who Inject Drugs (males)", "type": "human"},
+    "PWID_females": {"label": "People Who Inject Drugs (females)", "type": "human"},
+    "0-9_males": {"label": "General Population 0-9 males", "type": "human"},
+    "0-9_females": {"label": "General Population 0-9 females", "type": "human"},
+    "10-17_males": {"label": "General Population 10-17 males", "type": "human"},
+    "10-17_females": {"label": "General Population 10-17 females", "type": "human"},
+    "18-64_males": {"label": "General Population 18-64 males", "type": "human"},
+    "18-64_females": {"label": "General Population 18-64 females", "type": "human"},
+    "65+_males": {"label": "General Population 65+ males", "type": "human"},
+    "65+_females": {"label": "General Population 65+ females", "type": "human"},
+    "Prisoners_males": {"label": "Prisoners (males)", "type": "human"},
+    "Prisoners_females": {"label": "Prisoners (females)", "type": "human"},
+    "Prisoners_PWID_males": {"label": "Prisoners (males)", "type": "human"},
+    "Prisoners_PWID_females": {"label": "Prisoners (females)", "type": "human"},
+}
+
+default_transfer_codes = OrderedDict()
+default_transfer_codes = {
+    "age": "Aging",
+    "idu_status": "Injecting Drug Use Relapse or Cessation",
+    "inc": "Incarceration",
+}
+default_transfers = OrderedDict()
+default_transfers = {
+    "age": [
+        ("18-64_males", "65+_males"),
+        ("18-64_females", "65+_females"),
+        ("10-17_males", "18-64_males"),
+        ("10-17_females", "18-64_females"),
+        ("0-9_males", "10-17_males"),
+        ("0-9_females", "10-17_females"),
+    ],
+    "idu_status": [
+        ("PWID_males", "18-64_males"),
+        ("18-64_males", "PWID_males"),
+        ("PWID_females", "18-64_females"),
+        ("18-64_females", "PWID_females"),
+    ],
+    "inc": [
+        ("PWID_males", "Prisoners_PWID_males"),
+        ("PWID_females", "Prisoners_PWID_females"),
+        ("Prisoners_PWID_males", "PWID_males"),
+        ("Prisoners_PWID_females", "PWID_females"),
+        ("18-64_males", "Prisoners_males"),
+        ("18-64_females", "Prisoners_females"),
+        ("Prisoners_males", "18-64_males"),
+        ("Prisoners_females", "18-64_females"),
+    ],
+}
+
+default_pops_inter = [
+    "Prisoners_PWID_males",
+    "Prisoners_PWID_females",
+]  # default populations with idu self interactions
 
 def generate_databook(country, savedir=None):
     """Generates a databook for a specified country based on demographic and health data.
@@ -30,8 +87,8 @@ def generate_databook(country, savedir=None):
     """
     print(country)
     
-    F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework.xlsx')
-    D = at.ProjectData.new(framework = F, tvec = np.arange(2000,2051), pops=hcv.default_pops, transfers=0)
+    F = at.ProjectFramework(str(rootdir) + '/framework/hcv_vaccine_framework1.xlsx')
+    D = at.ProjectData.new(framework = F, tvec = np.arange(2000,2051), pops=default_pops, transfers=0)
     
     who_regions = pd.read_excel(str(rootdir)+"/data/flat_datasheet.xlsx", sheet_name="Cost - YLL and productivity").iloc[:,np.r_[1,4]]
     region = who_regions[who_regions.ISO3==country].WHO_reg.values[0]
@@ -69,10 +126,22 @@ def generate_databook(country, savedir=None):
                 D.tdve['alive'].ts[pop].vals.append(D.tdve['alive'].ts[pop].vals[0])
             else:
                 D.tdve['alive'].ts[pop].vals.append(np.average(D.tdve['alive'].ts[pop].vals))
-
     
+    # pwid_pris = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name= 'Country-PWID Pop Estimates')
+    # pwid_pris = pwid_pris[pwid_pris.ISO3 == country]
+    # pwid_males_pris_pop = pwid_pris["Male IDU Prisoner Pop"].values[0]
+    # pwid_females_pris_pop = pwid_pris["Female IDU Prisoner Pop"].values[0]
+    # D.tdve['alive'].ts["Prisoners_PWID_males"].t.append(2000)
+    # D.tdve['alive'].ts["Prisoners_PWID_males"].vals.append(pwid_males_pris_pop)
+    # for idx,val in enumerate(D.tdve['alive'].ts["Prisoners_males"].vals):
+    #     D.tdve['alive'].ts["Prisoners_males"].vals[idx] = min(val-pwid_males_pris_pop,0)
+    # D.tdve['alive'].ts["Prisoners_PWID_females"].t.append(2000)
+    # D.tdve['alive'].ts["Prisoners_PWID_females"].vals.append(pwid_females_pris_pop)
+    # D.tdve['alive'].ts["Prisoners_females"].vals = np.array(pris_f_v)-pwid_females_pris_pop
+    # D.tdve['alive'].ts["Prisoners_males"].vals = np.array(pris_m_v)-pwid_males_pris_pop
+        
     # Delete not-used interactions
-    interactions_idu = list(zip(hcv.default_pops_inter,hcv.default_pops_inter))
+    interactions_idu = list(zip(default_pops_inter,default_pops_inter))
     sexes = ['males', 'females']
     for sx1, sx2 in itertools.product(sexes, sexes):
         interactions_idu += [('PWID_' + sx1, 'PWID_' + sx2)]
@@ -80,19 +149,19 @@ def generate_databook(country, savedir=None):
     for key in [keys for keys in D.interpops[0].ts.keys() if keys not in interactions_idu]: #list of keys excluding idu transfers
         del D.interpops[0].ts[key]
     
-    # gen_to = ['18-64_males','18-64_females','65+_males','65+_females']
-    # interactions_gen = []
-    # for pop_from in D.pops:
-    #     for pop_to in gen_to:
-    #         interactions_gen += [(pop_from,pop_to)]
+    gen_to = ['18-64_males','18-64_females','65+_males','65+_females']
+    interactions_gen = []
+    for pop_from in gen_to:
+        for pop_to in gen_to:
+            interactions_gen += [(pop_from,pop_to)]
             
-    # for key in [keys for keys in D.interpops[1].ts.keys() if keys not in interactions_gen]: #list of keys excluding idu transfers
-    #     del D.interpops[1].ts[key]
+    for key in [keys for keys in D.interpops[1].ts.keys() if keys not in interactions_gen]: #list of keys excluding idu transfers
+        del D.interpops[1].ts[key]
         
     # Generate all transfers
-    for idx, transfer_name in enumerate(hcv.default_transfer_codes.keys()): #adds transfer categories based on hcv.default_transfer_codes
-        D.add_transfer(transfer_name,hcv.default_transfer_codes[transfer_name],pop_type='human')
-        for pair in hcv.default_transfers[transfer_name]: #switches to Y for chosen pops
+    for idx, transfer_name in enumerate(default_transfer_codes.keys()): #adds transfer categories based on hcv.default_transfer_codes
+        D.add_transfer(transfer_name,default_transfer_codes[transfer_name],pop_type='human')
+        for pair in default_transfers[transfer_name]: #switches to Y for chosen pops
             D.transfers[idx].ts.append((pair[0],pair[1]), at.TimeSeries())
 
     ### Default Transfer Values
@@ -115,57 +184,85 @@ def generate_databook(country, savedir=None):
     D.transfers[1].ts['PWID_females','18-64_females'].units = 'Rate (per year)'
     D.transfers[1].ts['PWID_females','18-64_females'].assumption = np.mean(data['Rate out'].values)
     
-    ### Prison transfers    
-    data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Transfers')
+    # ### Prison transfers    
+    # data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Transfers')
+    # data = data[data.ISO3 == country]
+    # prison_transfer_in_map = { 
+    #     ('18-64_males', 'Prisoners_males'): 'Male admission rate (general)', 
+    #     ('PWID_males', 'Prisoners_males'): 'Male admission rate (PWID)', 
+    #     ('18-64_females', 'Prisoners_females'): 'Female admission rate (general)', 
+    #     ('PWID_females', 'Prisoners_females'): 'Female admission rate (PWID)'}
+    # prison_transfer_out_map = { 
+    #     ('Prisoners_males', '18-64_males'): 'Male release rate (general)', 
+    #     ('Prisoners_males', 'PWID_males'): 'Male release rate (PWID)', 
+    #     ('Prisoners_females', '18-64_females'): 'Female release rate (general)', 
+    #     ('Prisoners_females', 'PWID_females'): 'Female release rate (PWID)' }
+    
+    # for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = data.loc[data[col_label].fillna(0)!=0,'Year'].tolist()
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = data.loc[data[col_label].fillna(0)!=0,col_label].tolist()
+        
+    # # Estimate exit rate based on entry rate and pop size for countries with entry but no exit data (note this will be calibrated any way)
+    # for (pop_from_out, pop_to_out), (pop_from_in, pop_to_in) in zip(list(prison_transfer_out_map.keys()),list(prison_transfer_in_map.keys())):        
+    #     alive_prison_t = D.tdve['alive'].ts[pop_from_out].t
+    #     alive_prison_vals = D.tdve['alive'].ts[pop_from_out].vals
+    #     alive_gpop_t = D.tdve['alive'].ts[pop_to_out].t
+    #     alive_gpop_vals = D.tdve['alive'].ts[pop_to_out].vals
+    #     if (D.transfers[2].ts[(pop_from_out, pop_to_out)].vals == []) and (D.transfers[2].ts[(pop_from_in, pop_to_in)].vals != []):
+    #         for idx, year in enumerate(D.transfers[2].ts[(pop_from_in, pop_to_in)].t):
+    #             idx_prison = min(range(len(alive_prison_t)), key=lambda i: abs(alive_prison_t[i]-year)) # find index of pop size value closest to "year"
+    #             idx_gpop = min(range(len(alive_gpop_t)), key=lambda i: abs(alive_gpop_t[i]-year)) # find index of pop size value closest to "year"
+    #             D.transfers[2].ts[(pop_from_out, pop_to_out)].t.append(year)
+    #             flow_out = D.transfers[2].ts[(pop_from_in, pop_to_in)].vals[idx]*alive_gpop_vals[idx_gpop]/max(alive_prison_vals[idx_prison],1e-6) # this assumes a stable prison pop size
+    #             D.transfers[2].ts[(pop_from_out, pop_to_out)].vals.append(flow_out)
+
+    # for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     if not D.transfers[2].ts[(pop_from, pop_to)].vals:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
+    #     else:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = []
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = []
+
+    # for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
+    #     D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
+    #     if not D.transfers[2].ts[(pop_from, pop_to)].vals:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
+    #     else:
+    #         D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
+    #     D.transfers[2].ts[(pop_from, pop_to)].t = []
+    #     D.transfers[2].ts[(pop_from, pop_to)].vals = []
+    
+    ### Prison transfers (new)  
+    data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name = 'Country-Prison Flows')
     data = data[data.ISO3 == country]
     prison_transfer_in_map = { 
-        ('18-64_males', 'Prisoners_males'): 'Male admission rate (general)', 
-        ('PWID_males', 'Prisoners_males'): 'Male admission rate (PWID)', 
-        ('18-64_females', 'Prisoners_females'): 'Female admission rate (general)', 
-        ('PWID_females', 'Prisoners_females'): 'Female admission rate (PWID)'}
+        ('18-64_males', 'Prisoners_males'): 'rate_in_18_64_males', 
+        ('PWID_males', 'Prisoners_PWID_males'): 'rate_in_pwid_males', 
+        ('18-64_females', 'Prisoners_females'): 'rate_in_18_64_females', 
+        ('PWID_females', 'Prisoners_PWID_females'): 'rate_in_pwid_females'}
     prison_transfer_out_map = { 
-        ('Prisoners_males', '18-64_males'): 'Male release rate (general)', 
-        ('Prisoners_males', 'PWID_males'): 'Male release rate (PWID)', 
-        ('Prisoners_females', '18-64_females'): 'Female release rate (general)', 
-        ('Prisoners_females', 'PWID_females'): 'Female release rate (PWID)' }
+        ('Prisoners_males', '18-64_males'): 'rate_out_18_64_males', 
+        ('Prisoners_PWID_males', 'PWID_males'): 'rate_out_pwid_males', 
+        ('Prisoners_females', '18-64_females'): 'rate_out_18_64_females', 
+        ('Prisoners_PWID_females', 'PWID_females'): 'rate_out_pwid_females' }
     
     for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        D.transfers[2].ts[(pop_from, pop_to)].t = data.loc[data[col_label].fillna(0)!=0,'Year'].tolist()
-        D.transfers[2].ts[(pop_from, pop_to)].vals = data.loc[data[col_label].fillna(0)!=0,col_label].tolist()
-        
-    # Estimate exit rate based on entry rate and pop size for countries with entry but no exit data (note this will be calibrated any way)
-    for (pop_from_out, pop_to_out), (pop_from_in, pop_to_in) in zip(list(prison_transfer_out_map.keys()),list(prison_transfer_in_map.keys())):        
-        alive_prison_t = D.tdve['alive'].ts[pop_from_out].t
-        alive_prison_vals = D.tdve['alive'].ts[pop_from_out].vals
-        alive_gpop_t = D.tdve['alive'].ts[pop_to_out].t
-        alive_gpop_vals = D.tdve['alive'].ts[pop_to_out].vals
-        if (D.transfers[2].ts[(pop_from_out, pop_to_out)].vals == []) and (D.transfers[2].ts[(pop_from_in, pop_to_in)].vals != []):
-            for idx, year in enumerate(D.transfers[2].ts[(pop_from_in, pop_to_in)].t):
-                idx_prison = min(range(len(alive_prison_t)), key=lambda i: abs(alive_prison_t[i]-year)) # find index of pop size value closest to "year"
-                idx_gpop = min(range(len(alive_gpop_t)), key=lambda i: abs(alive_gpop_t[i]-year)) # find index of pop size value closest to "year"
-                D.transfers[2].ts[(pop_from_out, pop_to_out)].t.append(year)
-                flow_out = D.transfers[2].ts[(pop_from_in, pop_to_in)].vals[idx]*alive_gpop_vals[idx_gpop]/max(alive_prison_vals[idx_prison],1e-6) # this assumes a stable prison pop size
-                D.transfers[2].ts[(pop_from_out, pop_to_out)].vals.append(flow_out)
-
-    for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
-        D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        if not D.transfers[2].ts[(pop_from, pop_to)].vals:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
-        else:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
-        D.transfers[2].ts[(pop_from, pop_to)].t = []
-        D.transfers[2].ts[(pop_from, pop_to)].vals = []
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0] if data[col_label].values[0]>0 else 0
 
     for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
         D.transfers[2].ts[(pop_from, pop_to)].units = 'Rate (per year)'
-        if not D.transfers[2].ts[(pop_from, pop_to)].vals:
+        D.transfers[2].ts[(pop_from, pop_to)].assumption = data[col_label].values[0] if data[col_label].values[0]>0 else 0
+    
+    for (pop_from, pop_to), col_label in prison_transfer_in_map.items():
+        if D.transfers[2].ts[(pop_from, pop_to)].assumption == '':
             D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
-        else:
-            D.transfers[2].ts[(pop_from, pop_to)].assumption = np.mean(D.transfers[2].ts[(pop_from, pop_to)].vals)
-        D.transfers[2].ts[(pop_from, pop_to)].t = []
-        D.transfers[2].ts[(pop_from, pop_to)].vals = []
-            
+    for (pop_from, pop_to), col_label in prison_transfer_out_map.items():
+        if D.transfers[2].ts[(pop_from, pop_to)].assumption == '':
+            D.transfers[2].ts[(pop_from, pop_to)].assumption = 0
     
     ### Migration
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-Net Migration')
@@ -184,20 +281,21 @@ def generate_databook(country, savedir=None):
         D.tdve['mig_r'].ts[pop_code].t = data['Year'].values
         D.tdve['mig_r'].ts[pop_code].vals = data[pop_label].values
         
-    for pop_code in ['PWID_males','PWID_females','Prisoners_males','Prisoners_females']:
+    for pop_code in ['PWID_males','PWID_females','Prisoners_males','Prisoners_females','Prisoners_PWID_males','Prisoners_PWID_females']:
         D.tdve['mig_r'].ts[pop_code].assumption = 0
     
     ## Global Parameter Values
     ### Disease Progression
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Global-Disease Progression')
-
+    
+    general_populations = ["PWID", "0-9", "10-17", "18-64", "65+", "Prisoners", "Prisoners_PWID"]
     for idx, row in data.iterrows():
         if row['Parameter Code Name'] == 'prop_clear':
             if row['Population(s)'] == 'female all':
-                for pop in hcv.general_populations:
+                for pop in general_populations:
                     D.tdve[row['Parameter Code Name']].ts[pop + '_females'].assumption = row['Default Value']
             elif row['Population(s)'] == 'male all':
-                for pop in hcv.general_populations:
+                for pop in general_populations:
                     D.tdve[row['Parameter Code Name']].ts[pop + '_males'].assumption = row['Default Value']
         else:
             for pop in D.pops:
@@ -239,12 +337,16 @@ def generate_databook(country, savedir=None):
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Info-Calibrated Pars')
     hr_prison_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-Prisons Harm Reduction')
     hr_prison_data = hr_prison_data[hr_prison_data.ISO3 == country]
-    infx_gen_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Data-gPop Transmission')
+    infx_gen_data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Other Transmission')
     infx_gen_data = infx_gen_data[infx_gen_data.ISO3 == country]
     
     for idx, row in data.iterrows():
         par = row['Parameter Code Name']
         value = row['Default Value']
+        if 'test_pcr' in par:
+            continue
+        if ('test_ab' in par) and (value == 0):
+            value = 1e-2
         # defined populations
         pop_groups = [populations.strip() for populations in row['Population(s)'].split(',')]
         if pop_groups == ['all']:
@@ -266,16 +368,44 @@ def generate_databook(country, savedir=None):
                         D.tdve[par].ts[pop].t = D.tdve[par].ts['PWID_males'].t
                         D.tdve[par].ts[pop].vals = D.tdve[par].ts['PWID_males'].vals
             elif par == 'infx_gen':
-                D.tdve[par].ts[pop].t = list(infx_gen_data.Year)
-                D.tdve[par].ts[pop].vals = list(infx_gen_data.infx_gen)
+                continue
+                # D.tdve['infx_gen1'].ts[pop].t = list(infx_gen_data.Year)
+                # D.tdve['infx_gen1'].ts[pop].vals = list(infx_gen_data.infx_gen)
             else:
                 D.tdve[par].ts[pop].assumption = value
-
+    
+    country_income = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Info-Country Region Allocation')
+    country_income = country_income[country_income.ISO3 == country]
+    income_level = country_income['Income Group'].values[0]
+    if income_level == 'High income':
+        pcr_rate = 0.8
+    elif income_level == 'Upper middle income':
+        pcr_rate = 0.6
+    elif income_level == 'Lower middle income':
+        pcr_rate = 0.4
+    elif income_level == 'Low income':
+        pcr_rate = 0.2
+        
+    countries_high_prev = ["ARM","BDI","EGY","GAB","GEO","KAZ","KGZ","LVA","MNG","PAK","TJK","UKR"]
+        
+    for par in ['test_pcr_f0f2_ab_ic_1', 'test_pcr_f3f4_ab_ic_1']:
+        for pop in D.pops:
+            D.tdve[par].ts[pop].assumption = pcr_rate
+            
+    pop_infx_gen = ['18-64_males','18-64_females','65+_males','65+_females']
     for pop in D.pops:
         if not D.tdve['infx_primary'].ts[pop].assumption:
             D.tdve['infx_primary'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
-        if not D.tdve['infx_gen'].ts[pop].assumption and not D.tdve['infx_gen'].ts[pop].vals:
-            D.tdve['infx_gen'].ts[pop].assumption = 0 # Set FOI to zero for remaining populations
+        if not D.tdve['infx_gen1'].ts[pop].assumption and not D.tdve['infx_gen1'].ts[pop].vals:
+            if pop in pop_infx_gen:
+                if (country in countries_high_prev) or (infx_gen_data.other_transmission.values[0]==True):
+                    D.tdve['infx_gen1'].ts[pop].assumption = 0.1
+                    # https://doi.org/10.1016/S2468-1253(19)30085-8 (Globally, if the increased risk for HCV transmission among people who inject drugs was removed, an estimated 43% (95% CrI 25–67) of incident HCV infections would be prevented from 2018 to 2030, varying regionally. This population attributable fraction was higher in high-income countries (79%, 95% CrI 57–97) than in countries of low and middle income (38%, 24–64))
+                    # Global Hepatitis Report 2024 (IDU contributes to 43.6% of new infections globally)
+                else:
+                    D.tdve['infx_gen1'].ts[pop].assumption = 0 
+            else:
+                D.tdve['infx_gen1'].ts[pop].assumption = 0
 
     ### Disease burden
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Disease Burden')
@@ -290,7 +420,7 @@ def generate_databook(country, savedir=None):
                 D.tdve[row['Code Name']].ts[pop].t = list(data[~pd.isna(data[row['Display Name']])].Year)
                 D.tdve[row['Code Name']].ts[pop].vals = list(data[~pd.isna(data[row['Display Name']])][row['Display Name']])
         elif row['Population'] == 'Prisoners all':
-            for pop in ['Prisoners_males', 'Prisoners_females']:
+            for pop in ['Prisoners_males', 'Prisoners_females','Prisoners_PWID_males','Prisoners_PWID_females']:
                 D.tdve[row['Code Name']].ts[pop].t = list(data[~pd.isna(data[row['Display Name']])].Year)
                 D.tdve[row['Code Name']].ts[pop].vals = list(data[~pd.isna(data[row['Display Name']])][row['Display Name']])
         else:
@@ -302,11 +432,12 @@ def generate_databook(country, savedir=None):
                          sheet_name='Country-Prison Prevalence')
     data2 = data2[data2.ISO3 == country]
 
-    for pop in ['Prisoners_males', 'Prisoners_females']:  # Burden Estimates (prisoners) (if empty)
+    for pop in ['Prisoners_PWID_males', 'Prisoners_PWID_females']:  # Burden Estimates (prisoners) (if empty)
         sx = pop[10:-1]
         if len(D.tdve['prevalence'].ts[pop].vals) == 0:
             D.tdve['prevalence'].ts[pop].t = [2000]
-            D.tdve['prevalence'].ts[pop].vals = [data2[f'Estimated {sx.title()} Prisoner HCV Prevalence'].values[0]]
+            # D.tdve['prevalence'].ts[pop].vals = [data2[f'Estimated {sx.title()} Prisoner HCV Prevalence'].values[0]]
+            D.tdve['prevalence'].ts[pop].vals = [data2['HCV RNA prevalence (PWID)'].values[0]]
             D.tdve['chronic'].ts[pop].t = [2000]
             D.tdve['chronic'].ts[pop].vals = [D.tdve['prevalence'].ts[pop].vals[0] * D.tdve['alive'].ts[pop].vals[0]]
 
@@ -316,6 +447,13 @@ def generate_databook(country, savedir=None):
             D.tdve['prevalence'].ts[pop].vals = [data2['HCV RNA prevalence (PWID)'].values[0]]
             D.tdve['chronic'].ts[pop].t = [2000]
             D.tdve['chronic'].ts[pop].vals = [D.tdve['prevalence'].ts[pop].vals[0] * D.tdve['alive'].ts[pop].vals[0]]
+    
+    for pop in ['Prisoners_males', 'Prisoners_females']:  # Burden Estimates (prisoners) (if empty)
+        if len(D.tdve['prevalence'].ts[pop].vals) == 0:
+            D.tdve['prevalence'].ts[pop].t = [2000]
+            D.tdve['prevalence'].ts[pop].vals = [0]
+            D.tdve['chronic'].ts[pop].t = [2000]
+            D.tdve['chronic'].ts[pop].vals = [0]
 
 
     for par in ['chronic', 'prevalence']:
@@ -414,7 +552,7 @@ def generate_databook(country, savedir=None):
         D.tdve['prevalence'].ts[pop].vals.append(D.tdve['prevalence'].ts[pop].vals[0])
     
     # Note if sum of plhcv in key pop groups != total hcv, then distribute the rest of plhcv to the remaining 18+ pop groups
-    gpop = ['18-64_males','18-64_females','65+_males','65+_females']
+    gpop = ['18-64_males','18-64_females','65+_males','65+_females','Prisoners_males','Prisoners_females']
     gpop_size = sum([D.tdve['alive'].ts[pop].vals[0] for pop in gpop])
     plhcv_diff = D.tdve['plhcv_total'].ts['Total'].vals[0] - sum([D.tdve['chronic'].ts[pop].vals[0] for pop in D.pops])
     if plhcv_diff > 0:
@@ -433,18 +571,18 @@ def generate_databook(country, savedir=None):
     total_hcv = 0
     if (hr_prison_data.empty) or (hr_prison_data['Any HR in prisons?'].values[0] == False):
         pop_groups = [pop for pop in D.pops if 'Prisoners' not in pop]
-        D.tdve['prop_treat_pre2015_pwid'].ts['Prisoners_males'].assumption = 0
-        D.tdve['prop_treat_pre2015_pwid'].ts['Prisoners_females'].assumption = 0
-        D.tdve['prop_treat_post2015_pwid'].ts['Prisoners_males'].assumption = 0
-        D.tdve['prop_treat_post2015_pwid'].ts['Prisoners_females'].assumption = 0
+        pop_groups_prison = [pop for pop in D.pops if 'Prisoners' in pop]
+        for pop in pop_groups_prison:
+            D.tdve['prop_treat_pre2015_pwid'].ts[pop].assumption = 0
+            D.tdve['prop_treat_post2015_pwid'].ts[pop].assumption = 0
     else:
-        pop_groups = D.pops
+        pop_groups = D.pops.keys()
     for pop in pop_groups:
         total_hcv += D.tdve['total_hcv'].ts[pop].vals[0]
     prop_weighted = dict()
     for pop in pop_groups:
         if ('PWID' in pop) or ('Prisoners' in pop):
-            treat_weight = 1
+            treat_weight = 3
         else:
             treat_weight = 1
         prop_weighted[pop] = D.tdve['total_hcv'].ts[pop].vals[0]/total_hcv*treat_weight
@@ -469,9 +607,9 @@ def generate_databook(country, savedir=None):
             
     ### Model Initialisation
     stages = ['f0', 'f1', 'f2', 'f3', 'f4', 'dc', 'hcc']
-    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_males','Prisoners_females']
+    pops_burden = gpop + ['PWID_males','PWID_females','Prisoners_PWID_males','Prisoners_PWID_females','Prisoners_males','Prisoners_females']
     for pop in D.pops:
-        if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > atomica.model.model_settings['tolerance']:
+        if abs(1 - sum([D.tdve['prop_f0f2'].ts[pop].assumption/3 if j in ['f0', 'f1', 'f2'] else D.tdve['prop_' + j].ts[pop].assumption for j in stages])) > hcv.atomica.model.model_settings['tolerance']:
             print('ERROR: Disease stage proportions do not add up to 1')
         
         D.tdve['total_hcv'].ts[pop].t = [2000]
@@ -526,6 +664,9 @@ def generate_databook(country, savedir=None):
             
     for pop_pwid, pop_gp in zip(['PWID_males','PWID_females'],['18-64_males','18-64_females']):
         D.tdve['death_all'].ts[pop_pwid].vals = D.tdve['death_all'].ts[pop_gp].vals
+        
+    for pop_prison,pop_pwid in zip(['Prisoners_PWID_males','Prisoners_PWID_females'],['PWID_males','PWID_females']):
+        D.tdve['death_all'].ts[pop_prison].vals = D.tdve['death_all'].ts[pop_pwid].vals
     
     ## Uncertainty
     data = pd.read_excel(str(rootdir) + '/data/flat_datasheet.xlsx', sheet_name='Country-Standard Deviations')
