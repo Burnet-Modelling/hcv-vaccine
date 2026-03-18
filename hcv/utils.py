@@ -634,7 +634,10 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir):
                 ]
             },
             {"pwid": ["PWID_males", "PWID_females"]},
-            {"prisoners": ["Prisoners_males", "Prisoners_females","Prisoners_PWID_males", "Prisoners_PWID_females"]},
+            {"prisoners": ["Prisoners_males",
+                           "Prisoners_females",
+                           "Prisoners_PWID_males",
+                           "Prisoners_PWID_females"]},
             {
                 "working_age": [
                     "18-64_males",
