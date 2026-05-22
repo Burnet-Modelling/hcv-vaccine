@@ -18,9 +18,10 @@ rand_seed = 250711
 n_samples = sys.argv[1]
 results_folder = dir / "results"
 cal_folder = results_folder / "calibration" / "y-factors"
-savedir_calib = results_folder / "calibration" / "plots"
 savedir_scens = results_folder / "convergence" / country / n_samples
+savedir_scens.mkdir(parents=True, exist_ok=True)
 savedir_pp = results_folder / "convergence" / "results" / country / n_samples
+savedir_pp.mkdir(parents=True, exist_ok=True)
 
 ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens,nb_scenarios=1)
 ut.econ_eval(country, savedir_scens, savedir_pp, rand_seed=rand_seed, n_samples=n_samples,nb_scenarios=1)
