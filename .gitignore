@@ -12,10 +12,8 @@ test.xlsx
 test.py
 /calibration/plots
 scaleup_results_v4.xlsx
-/databooks/
 /results/calibration/
 /results
-/databooks
 /calibration
 vax_55072.log
 run_test_cal.py
