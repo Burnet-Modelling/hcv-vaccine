@@ -4055,6 +4055,10 @@ def econ_eval_central(country, sens_folder):
             "Total F4",
             "Total Decompensated",
             "Total Liver Cancer",
+            "F0-F3 infected PWID",
+            "F4+ infected PWID",
+            "F0-F3 cured PWID",
+            "F4+ cured PWID",
         ]
 
         for scen in scen_name:
@@ -4078,6 +4082,19 @@ def econ_eval_central(country, sens_folder):
                     "f0f3_c", "working_age"
                 ]
                 dis_data[scen]["F4+ cured"].iloc[:, i + 1] = data["f4_c", "working_age"]
+                
+                dis_data[scen]["F0-F3 infected PWID"].iloc[:, i + 1] = (
+                    data["f0f3_utx", "PWID_males"] + data["f0f3_utx", "PWID_females"]
+                )
+                dis_data[scen]["F4+ infected PWID"].iloc[:, i + 1] = (
+                    data["f4_utx", "PWID_males"] + data["f4_utx", "PWID_females"]
+                )
+                dis_data[scen]["F0-F3 cured PWID"].iloc[:, i + 1] = (
+                    data["f0f3_c", "PWID_males"] + data["f0f3_c", "PWID_females"]
+                )
+                dis_data[scen]["F4+ cured PWID"].iloc[:, i + 1] = (
+                    data["f4_c", "PWID_males"] + data["f4_c", "PWID_females"]
+                )
 
                 # Disease Management Costs
                 dis_data[scen]["F0-F2 diagnosed"].iloc[:, i + 1] = data[
@@ -4283,11 +4300,20 @@ def econ_eval_central(country, sens_folder):
                 econ_ests[scen][out]["year"] = np.arange(2000.5, 2051.5, 1)
 
         vax_cost = 5
+        pwid_er_mult = 1
+        f0f3_care, f4dx_care, dchcc_care = (
+            dir_costs.f0f3_dx_care.values[0],
+            dir_costs.f4_dx_care.values[0],
+            dir_costs.dchcc_care.values[0],
+            )
+        daa = [global_pars["value"].iloc[16]]
         for scen in scen_name:
+            
             if analysis == "DAA Treatment":
                 daa = [dir_costs.daa_cost_ub.values[0]]
-            else:
-                daa = [global_pars["value"].iloc[16]]
+            elif analysis == "DAA Treatment Lower":
+                daa = [dir_costs.daa_cost_lb.values[0]]
+                
             if analysis == "Engagement in care lb":
                 f0f3_care, f4dx_care, dchcc_care = (
                     dir_costs.f0f3_dx_care_lb.values[0],
@@ -4300,16 +4326,16 @@ def econ_eval_central(country, sens_folder):
                     dir_costs.f4_dx_care_ub.values[0],
                     dir_costs.dchcc_care_ub.values[0],
                 )
-            else:
-                f0f3_care, f4dx_care, dchcc_care = (
-                    dir_costs.f0f3_dx_care.values[0],
-                    dir_costs.f4_dx_care.values[0],
-                    dir_costs.dchcc_care.values[0],
-                )
-            for c in [10, 15, 20, 25, 30]:
+                
+            for c in [0, 10, 15, 20, 25, 30]:
                 if analysis == f"Vaccine unit cost ${c}":
                     vax_cost = c
-                    break
+                    
+            if analysis == "PWID employment 50%":
+                pwid_er_mult = 0.5
+            elif analysis == "PWID employment 0%":
+                pwid_er_mult = 0
+                
             for i, sim in enumerate(sim_loop):
                 for t in range(len(econ_ests[scen]["Diagnosis Cost"]["year"])):
                     econ_ests[scen]["Diagnosis Cost"].iloc[t, i + 1] = (
@@ -4380,14 +4406,16 @@ def econ_eval_central(country, sens_folder):
                         (gdp / employed)
                         * employed
                         * (
-                            dis_data[scen]["F0-F3 infected"].iloc[t, i + 1]
-                            * (abs_f + pres_f)
-                            + dis_data[scen]["F0-F3 cured"].iloc[t, i + 1]
-                            * (abs_fr + pres_fr)
-                            + dis_data[scen]["F4+ infected"].iloc[t, i + 1]
-                            * (abs_c + pres_c)
-                            + dis_data[scen]["F4+ cured"].iloc[t, i + 1]
-                            * (abs_cr + pres_cr)
+                            # Non-PWID (total minus PWID)
+                            (dis_data[scen]["F0-F3 infected"].iloc[t, i + 1] - dis_data[scen]["F0-F3 infected PWID"].iloc[t, i + 1]) * (abs_f + pres_f)
+                            + (dis_data[scen]["F0-F3 cured"].iloc[t, i + 1]  - dis_data[scen]["F0-F3 cured PWID"].iloc[t, i + 1])  * (abs_fr + pres_fr)
+                            + (dis_data[scen]["F4+ infected"].iloc[t, i + 1] - dis_data[scen]["F4+ infected PWID"].iloc[t, i + 1]) * (abs_c + pres_c)
+                            + (dis_data[scen]["F4+ cured"].iloc[t, i + 1]   - dis_data[scen]["F4+ cured PWID"].iloc[t, i + 1])   * (abs_cr + pres_cr)
+                            # PWID (scaled)
+                            + dis_data[scen]["F0-F3 infected PWID"].iloc[t, i + 1] * (abs_f + pres_f) * pwid_er_mult
+                            + dis_data[scen]["F0-F3 cured PWID"].iloc[t, i + 1] * (abs_fr + pres_fr) * pwid_er_mult
+                            + dis_data[scen]["F4+ infected PWID"].iloc[t, i + 1] * (abs_c + pres_c) * pwid_er_mult
+                            + dis_data[scen]["F4+ cured PWID"].iloc[t, i + 1] * (abs_cr + pres_cr) * pwid_er_mult
                         )
                         * cost_disc[t, 1]
                     )

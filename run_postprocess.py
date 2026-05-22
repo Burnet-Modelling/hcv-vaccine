@@ -13,7 +13,7 @@ from hcv import utils_plotting as ut_plt
 dir = ut.get_project_root()
 
 # Simulation parameters
-n_samples = 100
+n_samples = 500
 results_folder = dir / "results"
 scens_folder = results_folder / "scenarios"
 cal_folder = results_folder / "calibration"
@@ -46,25 +46,25 @@ ut.bcr_correlation()
 #%% plots
 ## Impact bar panel plot
 # requires "scens_folder/epi_agg.pkl" from aggregate_ensembles
-ut_plt.plot_bars_impact(scens_folder) # plot all regions on one page (for manuscript)
+# ut_plt.plot_bars_impact(scens_folder) # plot all regions on one page (for manuscript)
 
-for regions in [['global','top10'],['global'],['top10'],['AFR','EMR'],['EUR','AMR'],['SEAR','WPR']]:
-    ut_plt.plot_bars_impact(scens_folder,regions=regions) # plot select region combinations (for slides)
-for regions in [['top10','AFR','EMR','EUR','AMR','SEAR','WPR']]:
-    ut_plt.plot_bars_impact(scens_folder,regions=regions)
+# for regions in [['global','top10'],['global'],['top10'],['AFR','EMR'],['EUR','AMR'],['SEAR','WPR']]:
+#     ut_plt.plot_bars_impact(scens_folder,regions=regions) # plot select region combinations (for slides)
+# for regions in [['top10','AFR','EMR','EUR','AMR','SEAR','WPR']]:
+#     ut_plt.plot_bars_impact(scens_folder,regions=regions)
 
-## BCR maps
-# requires "scens_folder/bcr_map.csv" from econ_analysis
-ut_plt.plot_bcr_map(scens_folder)
-#%%
-## Time-series panel plot of outcomes
-for scenarios in [['scenario_0'],['scenario_1'],['scenario_2','scenario_3','scenario_4']]: # bundle scenarios with same counterfactual
-    ut_plt.plot_outcomes_timeseries(scens_folder,scenarios=scenarios)
+# ## BCR maps
+# # requires "scens_folder/bcr_map.csv" from econ_analysis
+# ut_plt.plot_bcr_map(scens_folder)
+# #%%
+# ## Time-series panel plot of outcomes
+# for scenarios in [['scenario_0'],['scenario_1'],['scenario_2','scenario_3','scenario_4']]: # bundle scenarios with same counterfactual
+#     ut_plt.plot_outcomes_timeseries(scens_folder,scenarios=scenarios)
     
-ut_plt.plot_outcomes_journal(scens_folder)
+# ut_plt.plot_outcomes_journal(scens_folder)
     
-#%%
-ut_plt.plot_calibration_forest(cal_folder)
-ut_plt.plot_calibration_combined(cal_folder)
-# %%
-ut_plt.plot_calibration_panel(scens_folder, cal_folder)
+# #%%
+# ut_plt.plot_calibration_forest(cal_folder)
+# ut_plt.plot_calibration_combined(cal_folder)
+# # %%
+# ut_plt.plot_calibration_panel(scens_folder, cal_folder)

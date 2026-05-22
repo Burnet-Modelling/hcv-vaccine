@@ -22,7 +22,7 @@ dir = ut.get_project_root()
 
 country = sys.argv[1]
 rand_seed=250711
-n_samples=100
+n_samples=500
 results_folder = dir/'results'
 results_folder.mkdir(parents=True, exist_ok=True)
 cal_folder_parent = results_folder / 'calibration'
