@@ -10,10 +10,6 @@ hcv_multi/test.py
 /.github/prompts
 test.xlsx
 test.py
-/calibration/plots
 scaleup_results_v4.xlsx
-/results/calibration/
-/results
-/calibration
 vax_55072.log
 run_test_cal.py
