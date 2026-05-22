@@ -15,7 +15,7 @@ dir = ut.get_project_root()
 
 country = "VNM"
 rand_seed = 250711
-n_samples = 100
+n_samples = sys.argv[1]
 results_folder = dir / "results"
 cal_folder = results_folder / "calibration" / "y-factors"
 savedir_calib = results_folder / "calibration" / "plots"
