@@ -465,7 +465,7 @@ def calibration_outputs(cal_folder, scens_folder):
 
 
 # %% Vaccine scenarios
-def define_scenarios(P, progset):
+def define_scenarios(P, progset, scenarios_to_run=None):
     """Defines scenarios based on program settings and coverage data.
     
     Args:
@@ -486,7 +486,7 @@ def define_scenarios(P, progset):
 
     data_progbook = str(rootdir) + "/data/progbook_inputs.xlsx"
     df_scenarios = pd.read_excel(pd.ExcelFile(data_progbook), sheet_name="scenarios")
-    scenarios = list(df_scenarios.scenario_name.unique())
+    scenarios = list(df_scenarios.scenario_name.unique()) if scenarios_to_run is None else scenarios_to_run
 
     progset_instructions = []
     for scen_name in scenarios:
@@ -513,7 +513,7 @@ def define_scenarios(P, progset):
     return progset_instructions, scenarios
 
 
-def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, nb_scenarios=None):
+def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, scenarios_to_run=None):
     """Run scenario sampling for a given country and save the results.
     
     This function initializes a project for the specified country, loads calibration data, and runs simulations based on defined scenarios. It generates outputs for various population groups and aggregates results, saving them to specified directories.
@@ -524,7 +524,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, nb
         rand_seed (int): The random seed for reproducibility of the sampling process.
         n_samples (int): The number of samples to generate during the simulation.
         savedir (str): The directory where the output files will be saved.
-        nb_scenarios (optional. Default = None) (int): Number of scenarios to run.
+        scenarios_to_run (optional. Default = None) (list(int)): Scenarios to run.
     
     Returns:
         None: The function saves output files to the specified directory and does not return any value.
@@ -767,10 +767,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, nb
     result_central = P.run_sim(parset=parset)
     gen_pb(result_central, "central")
     pset = P.load_progbook(savedir_pb / f"progbook_{country}_central.xlsx")
-    progset_instructions, scenarios = define_scenarios(P, pset)
-    if nb_scenarios is not None:
-        progset_instructions = progset_instructions[:nb_scenarios]
-        scenarios = scenarios[:nb_scenarios]
+    progset_instructions, scenarios = define_scenarios(P, pset, scenarios_to_run)
     # Save central results to separate central folder as well
     savedir2 = savedir.parents[0] / "central" / f"{country}"
     savedir2.mkdir(parents=True, exist_ok=True)
@@ -1387,7 +1384,7 @@ def bcr_correlation():
 
 
 # %% Economic functions
-def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples, nb_scenarios=None):
+def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples, scenarios_to_run=None):
     """Evaluate economic scenarios for a given country based on epidemiological data.
     
     Args:
@@ -1411,9 +1408,7 @@ def econ_eval(country, savedir_scens, results_folder, rand_seed, n_samples, nb_s
     scenarios = pd.read_excel(
         str(rootdir) + "/data/progbook_inputs.xlsx", sheet_name="scenarios"
     )
-    scen_name = list(pd.unique(scenarios.scenario_name))
-    if nb_scenarios is not None:
-        scen_name = scen_name[:nb_scenarios]
+    scen_name = list(pd.unique(scenarios.scenario_name)) if scenarios_to_run is None else scenarios_to_run
     sim_loop = ["central"] + list(np.arange(0, n_samples, 1))
 
     # Aggregate Summary Data (deaths will be used for counterfactual YLL/YPLLs)

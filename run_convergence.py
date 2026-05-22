@@ -15,7 +15,7 @@ dir = ut.get_project_root()
 
 country = "VNM"
 rand_seed = 250711
-n_samples = int(sys.argv[1])
+n_samples = 1000
 results_folder = dir / "results"
 cal_folder = results_folder / "calibration" / "y-factors"
 savedir_scens = results_folder / "convergence" / country / f"{n_samples}_samples"
@@ -23,5 +23,5 @@ savedir_scens.mkdir(parents=True, exist_ok=True)
 savedir_pp = results_folder / "convergence" / "results" / country / f"{n_samples}_samples"
 savedir_pp.mkdir(parents=True, exist_ok=True)
 
-ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens,nb_scenarios=1)
-ut.econ_eval(country, savedir_scens, savedir_pp, rand_seed=rand_seed, n_samples=n_samples,nb_scenarios=1)
+ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens,scenarios_to_run=["counter_0", "scenario_0"])
+ut.econ_eval(country, savedir_scens, savedir_pp, rand_seed=rand_seed, n_samples=n_samples,scenarios_to_run=["counter_0", "scenario_0"])
