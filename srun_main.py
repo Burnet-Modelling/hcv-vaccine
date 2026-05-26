@@ -45,7 +45,7 @@ sens_folder.mkdir(parents=True, exist_ok=True)
 # ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib,cal_version='v1') # plot
 
 # Run vaccine scenarios
-ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
+# ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
 ut.econ_eval(country, savedir_scens, results_folder, rand_seed=rand_seed, n_samples=n_samples)
 
 # # Run sensitivity analyses

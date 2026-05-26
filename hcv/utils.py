@@ -4084,16 +4084,16 @@ def econ_eval_central(country, sens_folder):
                 dis_data[scen]["F4+ cured"].iloc[:, i + 1] = data["f4_c", "working_age"]
                 
                 dis_data[scen]["F0-F3 infected PWID"].iloc[:, i + 1] = (
-                    data["f0f3_utx", "PWID_males"] + data["f0f3_utx", "PWID_females"]
+                    data["f0f3_utx", "pwid"]
                 )
                 dis_data[scen]["F4+ infected PWID"].iloc[:, i + 1] = (
-                    data["f4_utx", "PWID_males"] + data["f4_utx", "PWID_females"]
+                    data["f4_utx", "pwid"]
                 )
                 dis_data[scen]["F0-F3 cured PWID"].iloc[:, i + 1] = (
-                    data["f0f3_c", "PWID_males"] + data["f0f3_c", "PWID_females"]
+                    data["f0f3_c", "pwid"]
                 )
                 dis_data[scen]["F4+ cured PWID"].iloc[:, i + 1] = (
-                    data["f4_c", "PWID_males"] + data["f4_c", "PWID_females"]
+                    data["f4_c", "pwid"]
                 )
 
                 # Disease Management Costs
