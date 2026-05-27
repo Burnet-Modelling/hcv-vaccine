@@ -170,8 +170,8 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(
-        f"{country}  |  {outcome_key} at {reference_year}  |  Scenario: {scenario_key}\n"
-        f"Convergence of median and 95% CI across sample sizes",
+        f"Vietnam. {outcome_key} at {reference_year} (Status-quo scenario)\n"
+        f"Convergence of median and 95% Confidence Interval (CI) across sample sizes",
         fontsize=12, fontweight="bold", y=1.01
     )
 
@@ -186,7 +186,7 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
             markersize=8, linewidth=1.8,
             label=f"n={n:,}"
         )
-    ax.set_title(f"Median + 95% CI at {reference_year}", fontsize=11, fontweight="bold")
+    ax.set_title("Median + 95% CI\n", fontsize=11, fontweight="bold")
     ax.set_xlabel("Sample size (n runs)", fontsize=10)
     ax.set_ylabel("Prevalence", fontsize=10)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
@@ -205,7 +205,7 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
         ax2.annotate(f"{w:,.0f}", (n, w),
                      textcoords="offset points", xytext=(0, 9),
                      ha="center", fontsize=8.5, color=colors[i], fontweight="bold")
-    ax2.set_title(f"95% CI Width at {reference_year}", fontsize=11, fontweight="bold")
+    ax2.set_title("95% CI Width\n", fontsize=11, fontweight="bold")
     ax2.set_xlabel("Sample size (n runs)", fontsize=10)
     ax2.set_ylabel("CI Width (Upper − Lower)", fontsize=10)
     ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
@@ -213,7 +213,7 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
     ax2.set_xticklabels([f"{n:,}" for n in ns], fontsize=9)
     ax2.grid(True, alpha=0.3, linewidth=0.5, axis="y")
     ax2.spines[["top","right"]].set_visible(False)
-    ax2.set_ylim(bottom=0)
+    ax2.set_ylim([0,100000])
 
     plt.tight_layout()
     return fig

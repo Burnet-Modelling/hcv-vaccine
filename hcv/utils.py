@@ -784,7 +784,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, sc
     P.run_sampled_sims(
         parset=parset, n_samples=n_samples, rand_seed=rand_seed, custom_fct=gen_pb, start_sample=start_sample
     )
-    for i in np.arange(n_samples):
+    for i in np.arange(start_sample, start_sample + n_samples):
         pset = P.load_progbook(savedir_pb / f"progbook_{country}_{i}.xlsx")
         progset.append(pset)
     for p_i, scen in zip(progset_instructions, scenarios):
