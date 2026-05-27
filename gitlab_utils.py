@@ -23,7 +23,7 @@ def _get_sharepoint_folder():
         folder = 'C:/Users/Phil/Burnet Institute/WG-Modelling - HCV vaccine model - Documents/HCV vaccine model/HCV vaccine model/'
     elif user in ['phillipluong']:
         folder = 'C:/Users/iamph/Burnet Institute/WG-Modelling - HCV vaccine model - Documents/HCV vaccine model/HCV vaccine model/'
-    elif user in ['FarahH-May20']:
+    elif user in ['FarahH-May20', 'AnnaP-May25']:
         folder = 'C:/Users/farah.houdroge/Burnet Institute/WG-Modelling - HCV vaccine model - HCV vaccine model/HCV vaccine model'
     elif user in ['NickS-Sep24']:
         folder = 'C:/Users/nick.scott/Burnet Institute/WG-Modelling - HCV vaccine model - HCV vaccine model/'

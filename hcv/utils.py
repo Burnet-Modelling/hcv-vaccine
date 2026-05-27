@@ -265,14 +265,14 @@ def calibration_outputs(cal_folder, scens_folder):
     )
     countries = country_scope()
     for region in regions:
-        print(region)
+        # print(region)
         countries_df = regions_sheet[regions_sheet["WHO region"] == region]
         for country in countries_df.ISO3:
             if (country not in countries) or (
                 country not in inci_data_ghr["ISO3"].values
             ):
                 continue
-            print(country)
+            # print(country)
             result = sc.load(scens_folder / "agg_outputs" / f"{country}_econ_eval.pkl")[
                 "agg_data"
             ]["counter_0"]

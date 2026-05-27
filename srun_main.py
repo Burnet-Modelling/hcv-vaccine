@@ -20,7 +20,8 @@ import sys
 # dir = pathlib.Path(_get_sharepoint_folder())
 dir = ut.get_project_root()
 
-country = sys.argv[1]
+# country = sys.argv[1]
+country = 'PAK'
 rand_seed=250711
 n_samples=500
 results_folder = dir/'results'
@@ -45,11 +46,11 @@ sens_folder.mkdir(parents=True, exist_ok=True)
 # ut_plt.plot_calibration(country, cal_folder=cal_folder, savedir=savedir_calib,cal_version='v1') # plot
 
 # Run vaccine scenarios
-# ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
-ut.econ_eval(country, savedir_scens, results_folder, rand_seed=rand_seed, n_samples=n_samples)
+ut.run_scenario_sampling(country, cal_folder, rand_seed=rand_seed, n_samples=n_samples, savedir=savedir_scens)
+# ut.econ_eval(country, savedir_scens, results_folder, rand_seed=rand_seed, n_samples=n_samples)
 
 # # Run sensitivity analyses
-ut.run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder)
-ut.run_genotype_analyses(country, cal_folder, sens_folder, results_folder)
-ut.run_coverage_analyses(country, cal_folder, sens_folder)
-ut.econ_eval_central(country, sens_folder)
+# ut.run_sensitivity_analyses(country, cal_folder, sens_folder, results_folder)
+# ut.run_genotype_analyses(country, cal_folder, sens_folder, results_folder)
+# ut.run_coverage_analyses(country, cal_folder, sens_folder)
+# ut.econ_eval_central(country, sens_folder)

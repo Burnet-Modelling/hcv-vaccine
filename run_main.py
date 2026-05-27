@@ -18,7 +18,8 @@ import sys
 
 dir = ut.get_project_root()
 
-country = sys.argv[1]
+# country = sys.argv[1]
+country = 'PAK'
 rand_seed = 250711
 n_samples = 100
 results_folder = dir / "results"
