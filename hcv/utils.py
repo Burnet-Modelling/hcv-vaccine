@@ -513,7 +513,7 @@ def define_scenarios(P, progset, scenarios_to_run=None):
     return progset_instructions, scenarios
 
 
-def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, scenarios_to_run=None):
+def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, scenarios_to_run=None, start_sample=0):
     """Run scenario sampling for a given country and save the results.
     
     This function initializes a project for the specified country, loads calibration data, and runs simulations based on defined scenarios. It generates outputs for various population groups and aggregates results, saving them to specified directories.
@@ -782,7 +782,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, sc
     # Run with sampling
     progset = []
     P.run_sampled_sims(
-        parset=parset, n_samples=n_samples, rand_seed=rand_seed, custom_fct=gen_pb
+        parset=parset, n_samples=n_samples, rand_seed=rand_seed, custom_fct=gen_pb, start_sample=start_sample
     )
     for i in np.arange(n_samples):
         pset = P.load_progbook(savedir_pb / f"progbook_{country}_{i}.xlsx")
@@ -796,6 +796,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, sc
             n_samples=n_samples,
             rand_seed=rand_seed,
             custom_fct=write_outputs,
+            start_sample=start_sample
         )
 
 

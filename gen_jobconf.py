@@ -1,7 +1,7 @@
 from hcv import utils as ut
 
 countries = ut.country_scope()
-countries = ['PAK','BHR','CAN','IRN','LBN','PNG']
+# countries = ['PAK','BHR','CAN','IRN','LBN','PNG']
 
 with open("job.conf","w") as f:
     for i,c in enumerate(countries):

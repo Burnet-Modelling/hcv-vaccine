@@ -515,7 +515,7 @@ class Project(NamedItem):
 
         return result
 
-    def run_sampled_sims(self, parset, progset=None, progset_instructions=None, result_names=None, n_samples: int = 1, rand_seed: int = None, parallel=False, max_attempts=None, num_workers=None, custom_fct=None) -> list:
+    def run_sampled_sims(self, parset, progset=None, progset_instructions=None, result_names=None, n_samples: int = 1, rand_seed: int = None, parallel=False, max_attempts=None, num_workers=None, custom_fct=None, start_sample=0) -> list:
         """
         Run sampled simulations
 
@@ -565,7 +565,7 @@ class Project(NamedItem):
         
         if rand_seed is not None:
             rng = np.random.default_rng(seed=rand_seed)
-            seed_samples = rng.integers(1e15, size=n_samples)
+            seed_samples = rng.integers(1e15, size=start_sample + n_samples)[start_sample:]
         else:
             seed_samples = [None] * n_samples
 
@@ -588,7 +588,7 @@ class Project(NamedItem):
                         ps = progset
                     result = _run_sampled_sim(self, parset, ps, progset_instructions, result_names, max_attempts=max_attempts, rng_sampler=rng)
                     if custom_fct is not None:
-                        custom_fct(result,i)
+                        custom_fct(result,i+start_sample)
                 # results = [_run_sampled_sim(self, parset, progset, progset_instructions, result_names, max_attempts=max_attempts, rng_sampler=rng, acceptance_criteria=acceptance_criteria) for rng in tqdm.tqdm(model_rngs)]
         else:
             results = [_run_sampled_sim(self, parset, progset, progset_instructions, result_names, max_attempts=max_attempts, rng_sampler=rng) for rng in model_rngs]
