@@ -169,11 +169,11 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
     yerr_upper = [u - m for m, u in zip(medians, uppers)]
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle(
-        f"Vietnam. {outcome_key} at {reference_year} (Status-quo scenario)\n"
-        f"Convergence of median and 95% Confidence Interval (CI) across sample sizes",
-        fontsize=12, fontweight="bold", y=1.01
-    )
+    # fig.suptitle(
+    #     f"Vietnam. {outcome_key} at {reference_year} (Status-quo scenario)\n"
+    #     f"Convergence of median and 95% Confidence Interval (CI) across sample sizes",
+    #     fontsize=12, fontweight="bold", y=1.01
+    # )
 
     # --- Left: median + CI error bars ---
     ax = axes[0]
@@ -194,14 +194,14 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
     ax.set_xticklabels([f"{n:,}" for n in ns], fontsize=9)
     ax.grid(True, alpha=0.3, linewidth=0.5, axis="y")
     ax.spines[["top","right"]].set_visible(False)
-    ax.legend(fontsize=9, framealpha=0.7)
+    # ax.legend(fontsize=9, framealpha=0.7)
 
     # --- Right: CI width vs sample size ---
     ax2 = axes[1]
     ax2.plot(ns, widths, marker="o", color="#1D3557",
              linewidth=2, markersize=8, zorder=3)
     for i, (n, w) in enumerate(zip(ns, widths)):
-        ax2.scatter(n, w, color=colors[i], s=80, zorder=4)
+        ax2.scatter(n, w, color=colors[i], s=80, zorder=4, label=f"n={n:,}")
         ax2.annotate(f"{w:,.0f}", (n, w),
                      textcoords="offset points", xytext=(0, 9),
                      ha="center", fontsize=8.5, color=colors[i], fontweight="bold")
@@ -214,6 +214,7 @@ def plot_focal_year(all_focal: dict, scenario_key: str, country: str) -> plt.Fig
     ax2.grid(True, alpha=0.3, linewidth=0.5, axis="y")
     ax2.spines[["top","right"]].set_visible(False)
     ax2.set_ylim([0,100000])
+    ax2.legend(fontsize=9, framealpha=0.7)
 
     plt.tight_layout()
     return fig
@@ -389,15 +390,3 @@ def convergence_check(pkl_path: str | Path,
         # Excel
         px = out_dir / f"{country}_{scen_key}_convergence.xlsx"
         write_excel(all_stats, all_focal, scen_key, country, px)
-
-
-# ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 2:
-        print("Usage: python convergence_check.py <pkl_path> [output_dir] [scen1,scen2,...]")
-        sys.exit(1)
-    pkl     = Path(sys.argv[1])
-    out     = Path(sys.argv[2]) if len(sys.argv) > 2 else None
-    scens   = sys.argv[3].split(",") if len(sys.argv) > 3 else None
-    convergence_check(pkl, out, scens)

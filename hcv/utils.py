@@ -12,6 +12,7 @@ import re
 import math
 from hcv.atomica.plotting import Series
 from scipy.stats import pearsonr
+from pathlib import Path
 
 #%% Root directory
 def get_project_root():
@@ -800,7 +801,7 @@ def run_scenario_sampling(country, cal_folder, rand_seed, n_samples, savedir, sc
         )
 
 
-def calc_averted_region(results_folder, file_name="epi_agg.pkl", n_samples=100):
+def calc_averted_region(results_folder, file_name="epi_agg.pkl", n_samples=1000):
     """Calculates averted health outcomes for different scenarios and regions based on epidemiological data.
     
     Args:
@@ -897,7 +898,7 @@ def calc_averted_region(results_folder, file_name="epi_agg.pkl", n_samples=100):
     return pd.DataFrame(data)
 
 
-def calc_outcomes_region(scens_folder, n_samples=100, regions=None):
+def calc_outcomes_region(scens_folder, n_samples=1000, regions=None):
     """Calculates epidemiological and economic outcomes for specified regions based on scenario data.
     
     Args:
@@ -1382,6 +1383,281 @@ def bcr_correlation():
     print_df.to_excel(out_path, index=True)
 
     print(f"Correlation results saved to:{out_path}")
+    
+    
+def _fmt(val, year, avail, is_pct=False, is_int=False):
+    """Format a single cell as 'value (year) Estimate_type'."""
+    if pd.isna(val):
+        return ""
+    if is_pct:
+        val_str = f"{val:.1%}"
+    elif is_int or val > 100:
+        val_str = f"{int(round(val)):,}"
+    else:
+        val_str = f"{val:.4f}"
+    yr_str   = f" ({int(year)})" if not pd.isna(year) else ""
+    est_str  = f" {avail}" if (avail and not pd.isna(avail)) else ""
+    return f"{val_str}{yr_str}{est_str}"
+ 
+ 
+def extract_country_inputs(
+    flat_datasheet_path: str | Path,
+    data_availability_path: str | Path = None,
+    output_path: str | Path = None,
+) -> pd.DataFrame:
+    """
+    Parameters
+    ----------
+    flat_datasheet_path    : path to flat_datasheet.xlsx
+    data_availability_path : path to "Country specific data availability.xlsx"
+                             Sheet1 cols: ISO3, PWID pops, PWID fem, PWID prev,
+                                          PWID test, Pris prev, Pris entry
+    output_path            : optional .xlsx output path
+    """
+    path = Path(flat_datasheet_path)
+    print(f"Reading {path.name} ...")
+ 
+    # ------------------------------------------------------------------ sheets
+    demo        = pd.read_excel(path, sheet_name="Country-Demographic")
+    demo_info   = pd.read_excel(path, sheet_name="Info-Demographic")
+    burden      = pd.read_excel(path, sheet_name="Country-Disease Burden")
+    burden_info = pd.read_excel(path, sheet_name="Info-Disease Burden")
+    cascade     = pd.read_excel(path, sheet_name="Country-PWID Care Cascade")
+    prison_prev = pd.read_excel(path, sheet_name="Country-Prison Prevalence")
+    prison_flows= pd.read_excel(path, sheet_name="Country-Prison Flows")
+    income_info = pd.read_excel(path, sheet_name="Info-Country Region Allocation")
+ 
+    # ------------------------------------------------------------------ data availability
+    DA_COLS = ["PWID pops", "PWID fem", "PWID prev", "PWID test", "Pris prev", "Pris entry"]
+ 
+    def _is_country(val):
+        if pd.isna(val): return False
+        return str(val).strip() in ("✓", "✔", "☑", "1", "True", "true", "yes", "Yes", "Y", "y")
+ 
+    if data_availability_path:
+        da = pd.read_excel(Path(data_availability_path), sheet_name="Sheet1", usecols="A:G")
+        da.columns = ["ISO3"] + DA_COLS
+        da = da.set_index("ISO3")
+        for col in DA_COLS:
+            da[col] = da[col].apply(_is_country)
+    else:
+        da = None
+ 
+    def _avail(country, da_col):
+        if da is not None and country in da.index:
+            return "Country" if da.loc[country, da_col] else "Regional"
+        return np.nan
+ 
+    # ------------------------------------------------------------------ helper: last datapoint
+    def _last(df_country, col):
+        """Return (value, year) of last non-null entry for col in df_country."""
+        if col not in df_country.columns:
+            return np.nan, np.nan
+        sub = df_country[["Year", col]].dropna(subset=[col])
+        if sub.empty:
+            return np.nan, np.nan
+        row = sub.iloc[-1]
+        return row[col], row["Year"]
+ 
+    # ------------------------------------------------------------------ display name lookups
+    def _display(info_df, code, pop=None):
+        mask = info_df["Code Name"] == code
+        if pop:
+            mask &= info_df["Population"] == pop
+        rows = info_df[mask]
+        return rows.iloc[0]["Display Name"] if not rows.empty else None
+ 
+    pwid_m_col   = _display(demo_info, "alive", pop="PWID_males")
+    pwid_f_col   = _display(demo_info, "alive", pop="PWID_females")
+    pwid_prev_col= _display(burden_info, "prevalence", pop="PWID all") or \
+                   _display(burden_info, "prevalence")
+ 
+    # ------------------------------------------------------------------ WHO regions (for testing rate adjustment)
+    who_regions = income_info.set_index("ISO3")
+ 
+    # ------------------------------------------------------------------ country scope
+    countries = country_scope()
+    print(f"  Countries in scope: {len(countries)}")
+ 
+    # ------------------------------------------------------------------ main loop
+    COLS = [
+        "PWID population (n)",
+        "PWID female proportion",
+        "PWID HCV prevalence",
+        "PWID testing rate (12mo, adjusted)",
+        "% of prisoners who inject drugs",
+        "Total prison admissions (n)",
+    ]
+    records = {}
+ 
+    for country in countries:
+        name = iso_to_country[country]
+        row  = {}
+ 
+        # ---- PWID population
+        d = demo[demo["ISO3"] == country]
+        m_val, m_yr = _last(d, pwid_m_col)
+        f_val, f_yr = _last(d, pwid_f_col)
+        total = (m_val if not pd.isna(m_val) else 0) + (f_val if not pd.isna(f_val) else 0)
+        yr    = m_yr if not pd.isna(m_yr) else f_yr
+        row["PWID population (n)"] = _fmt(
+            total if total > 0 else np.nan, yr,
+            _avail(country, "PWID pops"), is_int=True
+        )
+ 
+        # ---- PWID female proportion
+        fem_prop = (f_val / total) if (total > 0 and not pd.isna(f_val)) else np.nan
+        row["PWID female proportion"] = _fmt(
+            fem_prop, yr, _avail(country, "PWID fem"), is_pct=True
+        )
+ 
+        # ---- PWID HCV prevalence
+        b = burden[burden["ISO3"] == country]
+        prev_val, prev_yr = _last(b, pwid_prev_col) if pwid_prev_col else (np.nan, np.nan)
+        prev_src = "PWID prev"
+        if pd.isna(prev_val):
+            pp = prison_prev[prison_prev["ISO3"] == country]
+            if not pp.empty and "HCV RNA prevalence (PWID)" in pp.columns:
+                prev_val = pp["HCV RNA prevalence (PWID)"].values[0]
+                prev_yr  = np.nan
+        row["PWID HCV prevalence"] = _fmt(
+            prev_val, prev_yr, _avail(country, "PWID prev"), is_pct=True
+        )
+ 
+        # ---- PWID testing rate (adjusted)
+        cas = cascade[cascade["ISO3"] == country]
+        test_val, test_yr, test_type = np.nan, np.nan, np.nan
+        if not cas.empty:
+            sub = cas[["Year","Tested past 12mo (proportion)","Tested 12mo data type"]
+                      ].dropna(subset=["Tested past 12mo (proportion)"])
+            if not sub.empty:
+                last = sub.iloc[-1]
+                test_val  = last["Tested past 12mo (proportion)"]
+                test_yr   = last["Year"]
+                test_type = last["Tested 12mo data type"]
+                region = who_regions.loc[country, "WHO_reg"] \
+                         if (country in who_regions.index and "WHO_reg" in who_regions.columns) else ""
+                if (test_type == "Regional estimate") and (region != "AFR"):
+                    test_val = test_val / 2
+        row["PWID testing rate (12mo, adjusted)"] = _fmt(
+            test_val, test_yr, _avail(country, "PWID test"), is_pct=True
+        )
+ 
+        # ---- % of prisoners who inject drugs (regional estimates)
+        pp = prison_prev[prison_prev["ISO3"] == country]
+        pris_pwid_val = np.nan
+        if not pp.empty and "% of Prisoners who Inject Drugs" in pp.columns:
+            v = pp["% of Prisoners who Inject Drugs"].values[0]
+            pris_pwid_val = v if not pd.isna(v) else np.nan
+        row["% of prisoners who inject drugs"] = _fmt(
+            pris_pwid_val, np.nan, "Regional", is_pct=True
+        )
+ 
+        # ---- Total prison admissions = sum of (rate × pop) for all admission flows
+        pf = prison_flows[prison_flows["ISO3"] == country]
+        admission_pairs = [
+            ("rate_in_18_64_males",   pwid_m_col,  "18-64_males",  False),
+            ("rate_in_18_64_females", pwid_f_col,  "18-64_females",False),
+            ("rate_in_pwid_males",    pwid_m_col,  "PWID_males",   True),
+            ("rate_in_pwid_females",  pwid_f_col,  "PWID_females", True),
+        ]
+        # get population sizes from demographic data
+        pop_col_map = {
+            "18-64_males":   _display(demo_info, "alive", pop="18-64_males"),
+            "18-64_females": _display(demo_info, "alive", pop="18-64_females"),
+            "PWID_males":    pwid_m_col,
+            "PWID_females":  pwid_f_col,
+        }
+        total_admissions = 0.0
+        adm_yr = np.nan
+        has_any = False
+        for rate_col, _, pop_key, _ in admission_pairs:
+            if pf.empty or rate_col not in pf.columns:
+                continue
+            rate = pf[rate_col].values[0]
+            if pd.isna(rate) or rate == 0:
+                continue
+            pcol = pop_col_map.get(pop_key)
+            pop_val, pop_yr = _last(d, pcol) if pcol else (np.nan, np.nan)
+            # also try general pop sheets for 18-64
+            if pd.isna(pop_val) and "18-64" in pop_key:
+                gp_col = _display(demo_info, "alive", pop=pop_key)
+                pop_val, pop_yr = _last(demo[demo["ISO3"] == country], gp_col) if gp_col else (np.nan, np.nan)
+            if not pd.isna(pop_val) and pop_val > 0:
+                total_admissions += rate * pop_val
+                has_any = True
+                if pd.isna(adm_yr):
+                    adm_yr = pop_yr
+        row["Total prison admissions (n)"] = _fmt(
+            total_admissions if has_any else np.nan,
+            adm_yr, _avail(country, "Pris entry"), is_int=True
+        )
+ 
+        records[name] = row
+ 
+    # ------------------------------------------------------------------ assemble
+    df = pd.DataFrame.from_dict(records, orient="index", columns=COLS)
+    df.index.name = "Country"
+ 
+    # ------------------------------------------------------------------ Excel output
+    if output_path:
+        data_avail_write_excel(df, Path(output_path))
+ 
+    print(f"  Done. Shape: {df.shape}")
+    return df
+ 
+ 
+def data_avail_write_excel(df: pd.DataFrame, path: Path):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+ 
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Country Inputs"
+ 
+    thin  = Side(style="thin", color="CCCCCC")
+    bdr   = Border(left=thin, right=thin, top=thin, bottom=thin)
+    hfont = Font(name="Arial", bold=True, color="FFFFFF", size=10)
+    hfill = PatternFill("solid", start_color="1F4E79")
+    cfont = Font(name="Arial", size=9)
+    bfont = Font(name="Arial", size=9, bold=True)
+    cen   = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left  = Alignment(horizontal="left",   vertical="center", wrap_text=False)
+ 
+    cols = df.columns.tolist()
+ 
+    # Header row 1: index label
+    ws.cell(row=1, column=1, value="Country").font = hfont
+    ws.cell(row=1, column=1).fill = hfill
+    ws.cell(row=1, column=1).alignment = cen
+    ws.cell(row=1, column=1).border = bdr
+    ws.row_dimensions[1].height = 45
+    ws.column_dimensions["A"].width = 28
+ 
+    for ci, col in enumerate(cols, 2):
+        c = ws.cell(row=1, column=ci, value=col)
+        c.font = hfont; c.fill = hfill; c.alignment = cen; c.border = bdr
+        ws.column_dimensions[get_column_letter(ci)].width = 22
+ 
+    # Data rows
+    for ri, (country_name, row_data) in enumerate(df.iterrows(), 2):
+        # Country name cell
+        nc = ws.cell(row=ri, column=1, value=country_name)
+        nc.font = bfont; nc.alignment = left; nc.border = bdr
+        if ri % 2 == 0:
+            nc.fill = PatternFill("solid", start_color="F5F5F5")
+ 
+        for ci, col in enumerate(cols, 2):
+            val = row_data[col]
+            cell = ws.cell(row=ri, column=ci, value=val if val != "" else None)
+            cell.font = cfont; cell.alignment = cen; cell.border = bdr
+            if ri % 2 == 0:
+                cell.fill = PatternFill("solid", start_color="F5F5F5")
+ 
+    wb.save(path)
+    print(f"  Excel saved: {path}")
+
 
 
 # %% Economic functions

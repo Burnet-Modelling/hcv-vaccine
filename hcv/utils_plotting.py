@@ -1028,8 +1028,8 @@ def plot_calibration_combined(cal_folder):
         ["country", "plhcv_model_pe", "plhcv_model_lb", "plhcv_model_ub", "plhcv_ghr", "plhcv_polaris"],
     ]
     labels = ["Incidence", "Prevalent cases"]
-    titles = ["(a) Number of hepatitis C virus infections by country.",
-              "(b) Number of new hepatitis C virus infections by country."]
+    titles = ["(a) Number of new hepatitis C virus infections.",
+              "(b) Number of prevalent hepatitis C virus infections."]
 
     # Initialize 1 row, 2 columns. 
     # Increased width to 12 to provide space for y-labels on both plots.
@@ -1152,7 +1152,7 @@ def plot_outcomes_timeseries(scens_folder, regions=["global"], scenarios="all"):
         FileNotFoundError: If the specified Excel file or folder does not exist.
         KeyError: If the specified regions or scenarios are not found in the data.
     """
-    plot_data = ut.calc_outcomes_region(scens_folder, n_samples=100, regions=regions)
+    plot_data = ut.calc_outcomes_region(scens_folder, regions=regions)
     regions = list(plot_data.keys())
     epi_outcomes = list(plot_data[list(plot_data.keys())[0]])
     epi_outcomes = epi_outcomes[:-1]
@@ -1248,7 +1248,7 @@ def plot_outcomes_journal(scens_folder):
     """Plot outcomes time series in a 3x3 grid with row-based scenario groups."""
     regions = ["global"]
     # Data retrieval (assuming ut and rootdir are defined in your environment)
-    plot_data = ut.calc_outcomes_region(scens_folder, n_samples=100, regions=regions)
+    plot_data = ut.calc_outcomes_region(scens_folder, regions=regions)
     region = "global"
     
     # Ensure we have exactly 3 outcomes for 3 columns
@@ -1375,7 +1375,7 @@ def plot_outcomes_journal(scens_folder):
     print(f"Figure saved as {save_path}")
     plt.show()
     
-def plot_calibration_panel(scens_folder, cal_folder, n_samples=100):
+def plot_calibration_panel(scens_folder, cal_folder, n_samples=1000):
     """Generates a multi-page calibration panel plot for various health outcomes across multiple countries.
     
     This function reads scenario data from specified folders, processes the data to extract relevant health outcomes, and creates a PDF file containing plots for each country. Each page of the PDF displays the calibration results for a set number of countries, with each outcome represented in a separate subplot.
