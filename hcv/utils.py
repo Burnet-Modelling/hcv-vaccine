@@ -3078,75 +3078,56 @@ def econ_analysis(scens_folder, n_samples):
 
     for country in countries:
         data = sc.load(scens_folder / f"agg_outputs/{country}_econ_eval.pkl")
-
+    
         for i, scen in enumerate(vax_label):
+    
+            # central vaccine cost check
             vax_cost = np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 1])
-
             if vax_cost == 0 or np.isnan(vax_cost):
                 country_bcr_map.at[country, scen] = np.nan
                 country_bcr.at[iso_to_country[country], vax_label_scen[i]] = "N/A"
                 country_icer.at[iso_to_country[country], vax_label_scen[i]] = "N/A"
-                continue  # skip to next scenario
-                
+                continue
+    
+            # BCR central
             bcr_cent = (
                 np.sum(data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 1])
                 - np.sum(data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 1])
-            ) / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 1])
+            ) / vax_cost
             country_bcr_map.at[country, scen] = round(bcr_cent, 3)
-            bcr_low = np.nanpercentile(
-                (
-                    np.sum(
-                        data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                    )
-                    - np.sum(
-                        data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                    )
-                )
-                / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 2:], axis=0),
-                2.5,
+    
+            # BCR CI: mask runs where vaccine cost is near-zero
+            denom_runs = np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 2:], axis=0)
+            numer_runs = (
+                np.sum(data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0)
+                - np.sum(data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 2:], axis=0)
             )
-            bcr_upp = np.nanpercentile(
-                (
-                    np.sum(
-                        data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                    )
-                    - np.sum(
-                        data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                    )
-                )
-                / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 2:], axis=0),
-                97.5,
-            )
+            valid = denom_runs > 1  # exclude runs with near-zero vaccine cost
+            bcr_runs = np.where(valid, numer_runs / np.where(valid, denom_runs, np.nan), np.nan)
+            bcr_low = np.nanpercentile(bcr_runs, 2.5)
+            bcr_upp = np.nanpercentile(bcr_runs, 97.5)
+    
             country_bcr.at[iso_to_country[country], vax_label_scen[i]] = (
                 f"{bcr_cent:,.2f} \n ({bcr_low:,.2f} to {bcr_upp:,.2f})"
             )
-
-            # econ_agg[add][scen]["Diagnosis Cost"].iloc[:, i+1] + econ_agg[add][scen]["Disease Management Cost"].iloc[:, i+1] + econ_agg[add][scen]["Treatment Cost"].iloc[:, i+1]
-            # +Vaccine 5USD Cost"
-            num_1 = (
+    
+            # ICER central
+            num = (
                 np.sum(data["econ_ests"][scens[i]]["Diagnosis Cost"].iloc[25:, 1])
-                + np.sum(
-                    data["econ_ests"][scens[i]]["Disease Management Cost"].iloc[25:, 1]
-                )
+                + np.sum(data["econ_ests"][scens[i]]["Disease Management Cost"].iloc[25:, 1])
                 + np.sum(data["econ_ests"][scens[i]]["Treatment Cost"].iloc[25:, 1])
                 + np.sum(data["econ_ests"][scens[i]]["Vaccine_5USD"].iloc[25:, 1])
+                - np.sum(data["econ_ests"][comps[i]]["Diagnosis Cost"].iloc[25:, 1])
+                - np.sum(data["econ_ests"][comps[i]]["Disease Management Cost"].iloc[25:, 1])
+                - np.sum(data["econ_ests"][comps[i]]["Treatment Cost"].iloc[25:, 1])
             )
-            num_2 = (
-                np.sum(data["econ_ests"][comps[i]]["Diagnosis Cost"].iloc[25:, 1])
-                + np.sum(
-                    data["econ_ests"][comps[i]]["Disease Management Cost"].iloc[25:, 1]
-                )
-                + np.sum(data["econ_ests"][comps[i]]["Treatment Cost"].iloc[25:, 1])
+            den = (
+                np.sum(data["econ_ests"][comps[i]]["DALYs"].iloc[25:, 1])
+                - np.sum(data["econ_ests"][scens[i]]["DALYs"].iloc[25:, 1])
             )
-            num = num_1 - num_2
-            den = np.sum(data["econ_ests"][comps[i]]["DALYs"].iloc[25:, 1]) - np.sum(
-                data["econ_ests"][scens[i]]["DALYs"].iloc[25:, 1]
-            )
-            icer_cent = num / den
+            icer_cent = num / den if den != 0 else np.nan
             country_icer.at[iso_to_country[country], vax_label_scen[i]] = icer_cent
-            # ((np.sum(econ_agg[reg][scen]["Direct Cost"].iloc[25:, 1], axis=0)+np.sum(econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 1], axis=0)) - np.sum(econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 1], axis=0)) / (np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 1], axis=0) - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 1], axis=0))   # Total Cost (Intervention) - Total Cost (Comparison) / DALYs (Comparsion) - DALYs (Intervention)
-            # vad_reg_table[reg].at[scen, 'ICER'] = f"{icer_cent:,.0f}"
-
+            
     country_bcr_map.to_csv(scens_folder / "bcr_map.csv")
     print("BCR map data saved: {}".format(scens_folder / "bcr_map.csv"))
 
