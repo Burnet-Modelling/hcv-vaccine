@@ -2881,181 +2881,181 @@ def econ_analysis(scens_folder, n_samples):
         "Vaccine 20USD Cost",
     ]
 
-    for reg in regions:
-        vad_reg_table[reg] = pd.DataFrame(columns=["scenarios"] + outcomes_vad)
-        vad_reg_table[reg].scenarios = scens
-        vad_reg_table[reg] = vad_reg_table[reg].set_index("scenarios", drop=True)
+    # for reg in regions:
+    #     vad_reg_table[reg] = pd.DataFrame(columns=["scenarios"] + outcomes_vad)
+    #     vad_reg_table[reg].scenarios = scens
+    #     vad_reg_table[reg] = vad_reg_table[reg].set_index("scenarios", drop=True)
 
-        for i, scen in enumerate(scens):
-            for epi in outcomes_epi:
-                cen_epi = np.sum(
-                    epi_agg[reg][comps[i]][epi].iloc[25:, 1], axis=0
-                ) - np.sum(epi_agg[reg][scen][epi].iloc[25:, 1], axis=0)
-                low_epi = np.percentile(
-                    np.sum(epi_agg[reg][comps[i]][epi].iloc[25:, 2:], axis=0)
-                    - np.sum(epi_agg[reg][scen][epi].iloc[25:, 2:], axis=0),
-                    2.5,
-                )
-                upp_epi = np.percentile(
-                    np.sum(epi_agg[reg][comps[i]][epi].iloc[25:, 2:], axis=0)
-                    - np.sum(epi_agg[reg][scen][epi].iloc[25:, 2:], axis=0),
-                    97.5,
-                )
-                vad_reg_table[reg].at[
-                    scen, epi
-                ] = f"{cen_epi:,.0f} \n ({low_epi:,.0f} to {upp_epi:,.0f})"
+    #     for i, scen in enumerate(scens):
+    #         for epi in outcomes_epi:
+    #             cen_epi = np.sum(
+    #                 epi_agg[reg][comps[i]][epi].iloc[25:, 1], axis=0
+    #             ) - np.sum(epi_agg[reg][scen][epi].iloc[25:, 1], axis=0)
+    #             low_epi = np.percentile(
+    #                 np.sum(epi_agg[reg][comps[i]][epi].iloc[25:, 2:], axis=0)
+    #                 - np.sum(epi_agg[reg][scen][epi].iloc[25:, 2:], axis=0),
+    #                 2.5,
+    #             )
+    #             upp_epi = np.percentile(
+    #                 np.sum(epi_agg[reg][comps[i]][epi].iloc[25:, 2:], axis=0)
+    #                 - np.sum(epi_agg[reg][scen][epi].iloc[25:, 2:], axis=0),
+    #                 97.5,
+    #             )
+    #             vad_reg_table[reg].at[
+    #                 scen, epi
+    #             ] = f"{cen_epi:,.0f} \n ({low_epi:,.0f} to {upp_epi:,.0f})"
 
-            for econ in outcomes_econ:
-                if econ in flip_list:
-                    cen_econ = np.sum(
-                        econ_agg[reg][scen][econ].iloc[25:, 1], axis=0
-                    ) - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 1], axis=0)
-                    low_econ = np.percentile(
-                        np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0)
-                        - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0),
-                        2.5,
-                    )
-                    upp_econ = np.percentile(
-                        np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0)
-                        - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0),
-                        97.5,
-                    )
-                    vad_reg_table[reg].at[
-                        scen, econ
-                    ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
+    #         for econ in outcomes_econ:
+    #             if econ in flip_list:
+    #                 cen_econ = np.sum(
+    #                     econ_agg[reg][scen][econ].iloc[25:, 1], axis=0
+    #                 ) - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 1], axis=0)
+    #                 low_econ = np.percentile(
+    #                     np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0)
+    #                     - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0),
+    #                     2.5,
+    #                 )
+    #                 upp_econ = np.percentile(
+    #                     np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0)
+    #                     - np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0),
+    #                     97.5,
+    #                 )
+    #                 vad_reg_table[reg].at[
+    #                     scen, econ
+    #                 ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
 
-                else:
-                    cen_econ = np.sum(
-                        econ_agg[reg][comps[i]][econ].iloc[25:, 1], axis=0
-                    ) - np.sum(econ_agg[reg][scen][econ].iloc[25:, 1], axis=0)
-                    low_econ = np.percentile(
-                        np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0)
-                        - np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0),
-                        2.5,
-                    )
-                    upp_econ = np.percentile(
-                        np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0)
-                        - np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0),
-                        97.5,
-                    )
-                    # if econ == "Productivity Cost":
-                    #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ/1e9:,.2f} \n ({low_econ/1e9:,.2f} to {upp_econ/1e9:,.2f})"
-                    # elif econ == "Direct Cost":
-                    #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ/1e6:,.2f} \n ({low_econ/1e6:,.2f} to {upp_econ/1e6:,.2f})"
-                    # else:
-                    #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
-                    vad_reg_table[reg].at[
-                        scen, econ
-                    ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
+    #             else:
+    #                 cen_econ = np.sum(
+    #                     econ_agg[reg][comps[i]][econ].iloc[25:, 1], axis=0
+    #                 ) - np.sum(econ_agg[reg][scen][econ].iloc[25:, 1], axis=0)
+    #                 low_econ = np.percentile(
+    #                     np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0)
+    #                     - np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0),
+    #                     2.5,
+    #                 )
+    #                 upp_econ = np.percentile(
+    #                     np.sum(econ_agg[reg][comps[i]][econ].iloc[25:, 2:], axis=0)
+    #                     - np.sum(econ_agg[reg][scen][econ].iloc[25:, 2:], axis=0),
+    #                     97.5,
+    #                 )
+    #                 # if econ == "Productivity Cost":
+    #                 #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ/1e9:,.2f} \n ({low_econ/1e9:,.2f} to {upp_econ/1e9:,.2f})"
+    #                 # elif econ == "Direct Cost":
+    #                 #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ/1e6:,.2f} \n ({low_econ/1e6:,.2f} to {upp_econ/1e6:,.2f})"
+    #                 # else:
+    #                 #     vad_reg_table[reg].at[scen, econ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
+    #                 vad_reg_table[reg].at[
+    #                     scen, econ
+    #                 ] = f"{cen_econ:,.0f} \n ({low_econ:,.0f} to {upp_econ:,.0f})"
 
-            for j, bcr in enumerate(ben_cost):
-                bcr_cent = (
-                    np.sum(econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 1], axis=0)
-                    - np.sum(econ_agg[reg][scen]["Total Cost"].iloc[25:, 1], axis=0)
-                ) / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 1], axis=0)
-                bcr_low = np.percentile(
-                    (
-                        np.sum(
-                            econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                        )
-                        - np.sum(
-                            econ_agg[reg][scen]["Total Cost"].iloc[25:, 2:], axis=0
-                        )
-                    )
-                    / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 2:], axis=0),
-                    2.5,
-                )
-                bcr_upp = np.percentile(
-                    (
-                        np.sum(
-                            econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
-                        )
-                        - np.sum(
-                            econ_agg[reg][scen]["Total Cost"].iloc[25:, 2:], axis=0
-                        )
-                    )
-                    / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 2:], axis=0),
-                    97.5,
-                )
-                vad_reg_table[reg].at[
-                    scen, bcr
-                ] = f"{bcr_cent:,.2f} \n ({bcr_low:,.2f} to {bcr_upp:,.2f})"
+    #         for j, bcr in enumerate(ben_cost):
+    #             bcr_cent = (
+    #                 np.sum(econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 1], axis=0)
+    #                 - np.sum(econ_agg[reg][scen]["Total Cost"].iloc[25:, 1], axis=0)
+    #             ) / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 1], axis=0)
+    #             bcr_low = np.percentile(
+    #                 (
+    #                     np.sum(
+    #                         econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                     - np.sum(
+    #                         econ_agg[reg][scen]["Total Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                 )
+    #                 / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 2:], axis=0),
+    #                 2.5,
+    #             )
+    #             bcr_upp = np.percentile(
+    #                 (
+    #                     np.sum(
+    #                         econ_agg[reg][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                     - np.sum(
+    #                         econ_agg[reg][scen]["Total Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                 )
+    #                 / np.sum(econ_agg[reg][scen][bcr_denom[j]].iloc[25:, 2:], axis=0),
+    #                 97.5,
+    #             )
+    #             vad_reg_table[reg].at[
+    #                 scen, bcr
+    #             ] = f"{bcr_cent:,.2f} \n ({bcr_low:,.2f} to {bcr_upp:,.2f})"
 
-            for k, icer in enumerate(icer_cost):
-                icer_cent = (
-                    (
-                        np.sum(econ_agg[reg][scen]["Direct Cost"].iloc[25:, 1], axis=0)
-                        + np.sum(econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 1], axis=0)
-                    )
-                    - np.sum(
-                        econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 1], axis=0
-                    )
-                ) / (
-                    np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 1], axis=0)
-                    - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 1], axis=0)
-                )  # Total Cost (Intervention) - Total Cost (Comparison) / DALYs (Comparsion) - DALYs (Intervention)
-                icer_low = np.percentile(
-                    (
-                        (
-                            np.sum(
-                                econ_agg[reg][scen]["Direct Cost"].iloc[25:, 2:], axis=0
-                            )
-                            + np.sum(
-                                econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 2:], axis=0
-                            )
-                        )
-                        - np.sum(
-                            econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 2:], axis=0
-                        )
-                    )
-                    / (
-                        np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 2:], axis=0)
-                        - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 2:], axis=0)
-                    ),
-                    2.5,
-                )
-                icer_high = np.percentile(
-                    (
-                        (
-                            np.sum(
-                                econ_agg[reg][scen]["Direct Cost"].iloc[25:, 2:], axis=0
-                            )
-                            + np.sum(
-                                econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 2:], axis=0
-                            )
-                        )
-                        - np.sum(
-                            econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 2:], axis=0
-                        )
-                    )
-                    / (
-                        np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 2:], axis=0)
-                        - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 2:], axis=0)
-                    ),
-                    97.5,
-                )
-                vad_reg_table[reg].at[
-                    scen, icer
-                ] = f"{icer_cent:,.0f} \n ({icer_low:,.0f} to {icer_high:,.0f})"
+    #         for k, icer in enumerate(icer_cost):
+    #             icer_cent = (
+    #                 (
+    #                     np.sum(econ_agg[reg][scen]["Direct Cost"].iloc[25:, 1], axis=0)
+    #                     + np.sum(econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 1], axis=0)
+    #                 )
+    #                 - np.sum(
+    #                     econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 1], axis=0
+    #                 )
+    #             ) / (
+    #                 np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 1], axis=0)
+    #                 - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 1], axis=0)
+    #             )  # Total Cost (Intervention) - Total Cost (Comparison) / DALYs (Comparsion) - DALYs (Intervention)
+    #             icer_low = np.percentile(
+    #                 (
+    #                     (
+    #                         np.sum(
+    #                             econ_agg[reg][scen]["Direct Cost"].iloc[25:, 2:], axis=0
+    #                         )
+    #                         + np.sum(
+    #                             econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 2:], axis=0
+    #                         )
+    #                     )
+    #                     - np.sum(
+    #                         econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                 )
+    #                 / (
+    #                     np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 2:], axis=0)
+    #                     - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 2:], axis=0)
+    #                 ),
+    #                 2.5,
+    #             )
+    #             icer_high = np.percentile(
+    #                 (
+    #                     (
+    #                         np.sum(
+    #                             econ_agg[reg][scen]["Direct Cost"].iloc[25:, 2:], axis=0
+    #                         )
+    #                         + np.sum(
+    #                             econ_agg[reg][scen][bcr_denom[k]].iloc[25:, 2:], axis=0
+    #                         )
+    #                     )
+    #                     - np.sum(
+    #                         econ_agg[reg][comps[i]]["Direct Cost"].iloc[25:, 2:], axis=0
+    #                     )
+    #                 )
+    #                 / (
+    #                     np.sum(epi_agg[reg][comps[i]]["DALYs"].iloc[25:, 2:], axis=0)
+    #                     - np.sum(epi_agg[reg][scen]["DALYs"].iloc[25:, 2:], axis=0)
+    #                 ),
+    #                 97.5,
+    #             )
+    #             vad_reg_table[reg].at[
+    #                 scen, icer
+    #             ] = f"{icer_cent:,.0f} \n ({icer_low:,.0f} to {icer_high:,.0f})"
 
-    # Write to Excel spreadsheet and save
-    with pd.ExcelWriter(scens_folder / "regional_aggregate_outcomes.xlsx") as writer:
-        for sheet_name, df in agg_reg_table.items():
-            df.to_excel(writer, sheet_name=sheet_name, index=True)
-        print(
-            "Aggregate outcome data table saved: {}".format(
-                scens_folder / "regional_aggregate_outcomes.xlsx"
-            )
-        )
+    # # Write to Excel spreadsheet and save
+    # with pd.ExcelWriter(scens_folder / "regional_aggregate_outcomes.xlsx") as writer:
+    #     for sheet_name, df in agg_reg_table.items():
+    #         df.to_excel(writer, sheet_name=sheet_name, index=True)
+    #     print(
+    #         "Aggregate outcome data table saved: {}".format(
+    #             scens_folder / "regional_aggregate_outcomes.xlsx"
+    #         )
+    #     )
 
-    with pd.ExcelWriter(scens_folder / "regional_comparative_outcomes.xlsx") as writer:
-        for sheet_name, df in vad_reg_table.items():
-            df.to_excel(writer, sheet_name=sheet_name, index=True)
-        print(
-            "Aggregate outcome data table saved: {}".format(
-                scens_folder / "regional_comparative_outcomes.xlsx"
-            )
-        )
+    # with pd.ExcelWriter(scens_folder / "regional_comparative_outcomes.xlsx") as writer:
+    #     for sheet_name, df in vad_reg_table.items():
+    #         df.to_excel(writer, sheet_name=sheet_name, index=True)
+    #     print(
+    #         "Aggregate outcome data table saved: {}".format(
+    #             scens_folder / "regional_comparative_outcomes.xlsx"
+    #         )
+    #     )
 
     # Country Level BCRs for mapping
     loop_folder = pathlib.Path(str(scens_folder) + "/agg_outputs/")
@@ -3080,12 +3080,20 @@ def econ_analysis(scens_folder, n_samples):
         data = sc.load(scens_folder / f"agg_outputs/{country}_econ_eval.pkl")
 
         for i, scen in enumerate(vax_label):
+            vax_cost = np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 1])
+
+            if vax_cost == 0 or np.isnan(vax_cost):
+                country_bcr_map.at[country, scen] = np.nan
+                country_bcr.at[iso_to_country[country], vax_label_scen[i]] = "N/A"
+                country_icer.at[iso_to_country[country], vax_label_scen[i]] = "N/A"
+                continue  # skip to next scenario
+                
             bcr_cent = (
                 np.sum(data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 1])
                 - np.sum(data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 1])
             ) / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 1])
             country_bcr_map.at[country, scen] = round(bcr_cent, 3)
-            bcr_low = np.percentile(
+            bcr_low = np.nanpercentile(
                 (
                     np.sum(
                         data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
@@ -3097,7 +3105,7 @@ def econ_analysis(scens_folder, n_samples):
                 / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 2:], axis=0),
                 2.5,
             )
-            bcr_upp = np.percentile(
+            bcr_upp = np.nanpercentile(
                 (
                     np.sum(
                         data["econ_ests"][comps[i]]["Total Cost"].iloc[25:, 2:], axis=0
@@ -3106,7 +3114,7 @@ def econ_analysis(scens_folder, n_samples):
                         data["econ_ests"][scens[i]]["Total Cost"].iloc[25:, 2:], axis=0
                     )
                 )
-                / np.sum(data["econ_ests"][scens[i]][map_bcr], axis=0),
+                / np.sum(data["econ_ests"][scens[i]][map_bcr].iloc[25:, 2:], axis=0),
                 97.5,
             )
             country_bcr.at[iso_to_country[country], vax_label_scen[i]] = (
