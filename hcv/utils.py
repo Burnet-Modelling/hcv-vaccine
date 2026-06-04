@@ -1553,44 +1553,54 @@ def extract_country_inputs(
             pris_pwid_val, np.nan, "Regional", is_pct=True
         )
  
-        # ---- Total prison admissions = sum of (rate × pop) for all admission flows
+        # ---- Total prison admissions
         pf = prison_flows[prison_flows["ISO3"] == country]
-        admission_pairs = [
-            ("rate_in_18_64_males",   pwid_m_col,  "18-64_males",  False),
-            ("rate_in_18_64_females", pwid_f_col,  "18-64_females",False),
-            ("rate_in_pwid_males",    pwid_m_col,  "PWID_males",   True),
-            ("rate_in_pwid_females",  pwid_f_col,  "PWID_females", True),
-        ]
-        # get population sizes from demographic data
-        pop_col_map = {
-            "18-64_males":   _display(demo_info, "alive", pop="18-64_males"),
-            "18-64_females": _display(demo_info, "alive", pop="18-64_females"),
-            "PWID_males":    pwid_m_col,
-            "PWID_females":  pwid_f_col,
-        }
-        total_admissions = 0.0
+        total_admissions = np.nan
         adm_yr = np.nan
-        has_any = False
-        for rate_col, _, pop_key, _ in admission_pairs:
-            if pf.empty or rate_col not in pf.columns:
-                continue
-            rate = pf[rate_col].values[0]
-            if pd.isna(rate) or rate == 0:
-                continue
-            pcol = pop_col_map.get(pop_key)
-            pop_val, pop_yr = _last(d, pcol) if pcol else (np.nan, np.nan)
-            # also try general pop sheets for 18-64
-            if pd.isna(pop_val) and "18-64" in pop_key:
-                gp_col = _display(demo_info, "alive", pop=pop_key)
-                pop_val, pop_yr = _last(demo[demo["ISO3"] == country], gp_col) if gp_col else (np.nan, np.nan)
-            if not pd.isna(pop_val) and pop_val > 0:
-                total_admissions += rate * pop_val
-                has_any = True
-                if pd.isna(adm_yr):
-                    adm_yr = pop_yr
+        # Use direct column if available
+        if not pf.empty and "admissions_total" in pf.columns:
+            v = pf["admissions_total"].values[0]
+            if not pd.isna(v):
+                total_admissions = v
+                if "year_admissions" in pf.columns:
+                    yr_v = pf["year_admissions"].values[0]
+                    adm_yr = yr_v if not pd.isna(yr_v) else np.nan
+        # Fallback: compute from rate × pop
+        if pd.isna(total_admissions):
+            admission_pairs = [
+                ("rate_in_18_64_males",   pwid_m_col,  "18-64_males",  False),
+                ("rate_in_18_64_females", pwid_f_col,  "18-64_females",False),
+                ("rate_in_pwid_males",    pwid_m_col,  "PWID_males",   True),
+                ("rate_in_pwid_females",  pwid_f_col,  "PWID_females", True),
+            ]
+            pop_col_map = {
+                "18-64_males":   _display(demo_info, "alive", pop="18-64_males"),
+                "18-64_females": _display(demo_info, "alive", pop="18-64_females"),
+                "PWID_males":    pwid_m_col,
+                "PWID_females":  pwid_f_col,
+            }
+            acc = 0.0
+            has_any = False
+            for rate_col, _, pop_key, _ in admission_pairs:
+                if pf.empty or rate_col not in pf.columns:
+                    continue
+                rate = pf[rate_col].values[0]
+                if pd.isna(rate) or rate == 0:
+                    continue
+                pcol = pop_col_map.get(pop_key)
+                pop_val, pop_yr = _last(d, pcol) if pcol else (np.nan, np.nan)
+                if pd.isna(pop_val) and "18-64" in pop_key:
+                    gp_col = _display(demo_info, "alive", pop=pop_key)
+                    pop_val, pop_yr = _last(demo[demo["ISO3"] == country], gp_col) if gp_col else (np.nan, np.nan)
+                if not pd.isna(pop_val) and pop_val > 0:
+                    acc += rate * pop_val
+                    has_any = True
+                    if pd.isna(adm_yr):
+                        adm_yr = pop_yr
+            if has_any:
+                total_admissions = acc
         row["Total prison admissions (n)"] = _fmt(
-            total_admissions if has_any else np.nan,
-            adm_yr, _avail(country, "Pris entry"), is_int=True
+            total_admissions, adm_yr, _avail(country, "Pris entry"), is_int=True
         )
  
         records[name] = row
